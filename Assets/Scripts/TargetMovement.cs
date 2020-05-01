@@ -12,7 +12,7 @@ public class TargetMovement : MonoBehaviour
 
     Vector3 direction;
 
-    Vector2 speedRange = new Vector2(1, 2);
+    Vector2 speedRange = new Vector2(1, 3);
     float speed;
 
     // Start is called before the first frame update
@@ -25,7 +25,7 @@ public class TargetMovement : MonoBehaviour
     {
         timeTillMove = Random.Range(timeTillMoveRange.x, timeTillMoveRange.y);
         speed = Random.Range(speedRange.x, speedRange.y);
-        direction = new Vector3(Random.Range(0.1f, 1), Random.Range(0.1f, 1), 0);
+        direction = new Vector3(Random.Range(-1, 1), Random.Range(-1, 1), 0);
     }
 
     // Update is called once per frame

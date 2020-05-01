@@ -35,7 +35,7 @@ public class Shoot : MonoBehaviour
         {
             Vector3 mouseWorldPos = mainCamera.ScreenToWorldPoint(Input.mousePosition);
             mouseWorldPos = new Vector3(mouseWorldPos.x, mouseWorldPos.y, 0);
-            Vector3 direction = (mouseWorldPos - transform.position).normalized;
+            Vector3 direction = (mouseWorldPos - transform.root.position).normalized;
 
             GameObject bullet = Instantiate(bulletPrefab, bulletOrigin.position, Quaternion.identity);
             bullet.transform.up = direction;
