@@ -30,7 +30,7 @@ public class Movement : MonoBehaviour
         //transform.Translate((transform.position + force) * speed * Time.deltaTime);
 
         transform.position += force * speed * Time.deltaTime;
-
+        transform.position = new Vector3(Mathf.Clamp(transform.position.x, -10, 10), Mathf.Clamp(transform.position.y, -5, 5));
         Rotate();
 
     }

@@ -92,7 +92,7 @@ public class SpawnTargets : MonoBehaviour
         int s = intTime % 60;
         float fraction = seconds * 1000;
         fraction = (fraction % 1000);
-        string timeText = (minutes != 0) ? string.Format("{0:00}:{1:00}:{2:000}", minutes, seconds, fraction) : string.Format("{0:00}:{1:00}", seconds, fraction);
+        string timeText = (minutes != 0) ? string.Format("{0:00}:{1:00}.{2:000}", minutes, seconds, fraction) : string.Format("{0:00}.{1:00}", seconds, fraction);
         return timeText;
     }
 
