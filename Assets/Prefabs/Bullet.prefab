@@ -96,7 +96,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   speed: 25
-  effect: {fileID: 7888158957719190237, guid: 5bf0c619edc201340abf4f5b1eb4e54e, type: 3}
+  effectPrefab: {fileID: 7888158957719190237, guid: 5bf0c619edc201340abf4f5b1eb4e54e,
+    type: 3}
 --- !u!1 &5353790484244743017
 GameObject:
   m_ObjectHideFlags: 0
@@ -168,7 +169,7 @@ TrailRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
-  m_Time: 0.07
+  m_Time: 0.1
   m_Parameters:
     serializedVersion: 3
     widthMultiplier: 0.3
@@ -177,7 +178,7 @@ TrailRenderer:
       m_Curve:
       - serializedVersion: 3
         time: 0
-        value: 0.5
+        value: 0.39430237
         inSlope: 0
         outSlope: 0
         tangentMode: 0

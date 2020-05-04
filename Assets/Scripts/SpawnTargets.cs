@@ -29,6 +29,8 @@ public class SpawnTargets : MonoBehaviour
     float accuracy;
 
     bool showedGameUI = false;
+
+    Shoot shootScript;
     private void Awake()
     {
         Instance = this;
@@ -39,6 +41,8 @@ public class SpawnTargets : MonoBehaviour
     void Start()
     {
         targetsLeftText.text = targetsLeft + " targets left";
+        shootScript = FindObjectOfType<Shoot>();
+        Time.timeScale = 0;
     }
 
     // Update is called once per frame
@@ -52,7 +56,7 @@ public class SpawnTargets : MonoBehaviour
         if (gameDone && !showedGameUI)
         {
             // Bring up stats
-            accuracy = (float)maxNumOfTargets / (float)(Shoot.Instance.timesShot - 1);
+            accuracy = (float)maxNumOfTargets / (float)(shootScript.timesShot - 1);
 
             gameOverUI.SetActive(true);
             duringGameUI.SetActive(false);
@@ -73,6 +77,7 @@ public class SpawnTargets : MonoBehaviour
         if (Input.GetMouseButtonDown(0) && !startGame && targetsLeft > 0)
         {
             startGame = true;
+            Time.timeScale = 1;
             SpawnTarget();
 
             duringGameUI.SetActive(true);

@@ -16,11 +16,9 @@ public class Shoot : MonoBehaviour
 
     public int timesShot;
 
-    public static Shoot Instance;
-
     private void Awake()
     {
-        Instance = this;
+
     }
     // Start is called before the first frame update
     void Start()
@@ -31,7 +29,12 @@ public class Shoot : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        if (Input.GetMouseButton(0) && Time.timeSinceLevelLoad - lastTimeShot > shootRate && SpawnTargets.Instance.startGame)
+        
+    }
+
+    public void ShootWeapon()
+    {
+        if (Time.timeSinceLevelLoad - lastTimeShot > shootRate)
         {
             Vector3 mouseWorldPos = mainCamera.ScreenToWorldPoint(Input.mousePosition);
             mouseWorldPos = new Vector3(mouseWorldPos.x, mouseWorldPos.y, 0);
@@ -43,5 +46,5 @@ public class Shoot : MonoBehaviour
             lastTimeShot = Time.timeSinceLevelLoad;
             timesShot++;
         }
-    }
+    } 
 }

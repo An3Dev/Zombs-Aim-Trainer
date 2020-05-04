@@ -7,7 +7,7 @@ public class Bullet : MonoBehaviour
 
     public float speed;
 
-    public GameObject effect;
+    public GameObject effectPrefab;
     // Start is called before the first frame update
     void Start()
     {
@@ -34,10 +34,15 @@ public class Bullet : MonoBehaviour
         if (collider.CompareTag("Target"))
         {
             Destroy(collider);
-            SpawnTargets.Instance.DestroyedTarget();
+                SpawnTargets.Instance.DestroyedTarget();
         }
-        Instantiate(effect, collisionPoint, Quaternion.identity);
 
+        if (collider.gameObject.layer == LayerMask.NameToLayer("Destroyable"))
+        {
+            Destroy(collider);
+        }
+        GameObject effect = Instantiate(effectPrefab, collisionPoint, Quaternion.identity);
+        Destroy(effect, 3);
         Destroy(gameObject);
         
     }
