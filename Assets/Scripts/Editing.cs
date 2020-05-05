@@ -23,6 +23,7 @@ public class Editing : MonoBehaviour
     GameObject leftWall, rightWall, regularWall;
 
     public bool editOnRelease;
+    public bool resetOnRelease = true;
 
     public float editDistance;
     // Start is called before the first frame update
@@ -55,6 +56,16 @@ public class Editing : MonoBehaviour
                 leftEditPressed.SetActive(false);
                 rightEdit.SetActive(true);
                 rightEditPressed.SetActive(false);
+                
+            }
+
+            if (Input.GetMouseButtonUp(1))
+            {
+                if (resetOnRelease)
+                {
+                    Confirm();
+                    Debug.Log("Reset");
+                }
             }
 
             if (Input.GetMouseButton(0))
