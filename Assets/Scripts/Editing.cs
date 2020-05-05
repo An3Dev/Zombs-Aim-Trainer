@@ -17,10 +17,19 @@ public class Editing : MonoBehaviour
     Camera mainCamera;
 
     string lastEdited;
+
+    public static Editing Instance;
+
+    GameObject leftWall, rightWall, regularWall;
+
+    public bool editOnRelease;
+
+    public float editDistance;
     // Start is called before the first frame update
     void Start()
     {
-        mainCamera = Camera.main;   
+        mainCamera = Camera.main;
+        Instance = this;
     }
 
     // Update is called once per frame
@@ -28,10 +37,24 @@ public class Editing : MonoBehaviour
     {
         if (isEditingWall)
         {
-
             if (Input.GetMouseButtonUp(0))
             {
                 lastEdited = "";
+                if (editOnRelease)
+                {
+                    Confirm();
+                }
+            }
+            
+            // right click
+            if (Input.GetMouseButton(1))
+            {
+                
+                lastEdited = "";
+                leftEdit.SetActive(true);
+                leftEditPressed.SetActive(false);
+                rightEdit.SetActive(true);
+                rightEditPressed.SetActive(false);
             }
 
             if (Input.GetMouseButton(0))
@@ -41,42 +64,53 @@ public class Editing : MonoBehaviour
                 mouseWorldPos = new Vector3(mouseWorldPos.x, mouseWorldPos.y, 0);
                 Vector3 direction = (mouseWorldPos - transform.root.position).normalized;
 
-                RaycastHit2D hit = Physics2D.Raycast(transform.position, direction, 5, wallMask);
+                RaycastHit2D hit = Physics2D.Raycast(transform.position, direction, editDistance, wallMask);
 
                 Debug.DrawLine(transform.position, transform.position + direction);
 
-                string colliderName = hit.collider.name;
-
-                if (colliderName == "LeftEdit" && lastEdited != "LeftEditPress")
+                if (hit)
                 {
-                    leftEdit.SetActive(false);
-                    leftEditPressed.SetActive(true);
-                    lastEdited = hit.collider.gameObject.name;
-                } else if (colliderName == "RightEdit" && lastEdited != "RightEditPress")
-                {
-                    rightEdit.SetActive(false);
-                    rightEditPressed.SetActive(true);
-                    lastEdited = hit.collider.gameObject.name;
+                    string colliderName = hit.collider.name;
 
-                }
-                else if (colliderName == "LeftEditPress" && lastEdited != "LeftEdit")
-                {
-                    leftEditPressed.SetActive(false);
+                    if (colliderName == "LeftEdit" && lastEdited != "LeftEditPress")
+                    {
+                        leftEdit.SetActive(false);
+                        leftEditPressed.SetActive(true);
+                        lastEdited = hit.collider.gameObject.name;
+                    }
+                    else if (colliderName == "RightEdit" && lastEdited != "RightEditPress")
+                    {
+                        rightEdit.SetActive(false);
+                        rightEditPressed.SetActive(true);
+                        lastEdited = hit.collider.gameObject.name;
 
-                    leftEdit.SetActive(true);
-                    lastEdited = hit.collider.gameObject.name;
+                    }
+                    else if (colliderName == "LeftEditPress" && lastEdited != "LeftEdit")
+                    {
+                        leftEditPressed.SetActive(false);
 
-                }
-                else if (colliderName == "RightEditPress" && lastEdited != "RightEdit")
-                {
-                    rightEditPressed.SetActive(false);
+                        leftEdit.SetActive(true);
+                        lastEdited = hit.collider.gameObject.name;
 
-                    rightEdit.SetActive(true);
-                    lastEdited = hit.collider.gameObject.name;
+                    }
+                    else if (colliderName == "RightEditPress" && lastEdited != "RightEdit")
+                    {
+                        rightEditPressed.SetActive(false);
 
-                }
+                        rightEdit.SetActive(true);
+                        lastEdited = hit.collider.gameObject.name;
+
+                    }
+                }              
             }
         }
+    }
+
+    public void CancelEdit()
+    {
+        editWall.SetActive(false);
+        ResetEditWall();
+        disabledWall.SetActive(true);
     }
 
     public bool Edit()
@@ -86,21 +120,40 @@ public class Editing : MonoBehaviour
             isEditingWall = false;
 
             // confirm
+            Confirm();
+            return false;
         }
         Vector3 mouseWorldPos = mainCamera.ScreenToWorldPoint(Input.mousePosition);
         mouseWorldPos = new Vector3(mouseWorldPos.x, mouseWorldPos.y, 0);
         Vector3 direction = (mouseWorldPos - transform.root.position).normalized;
 
-        RaycastHit2D hit = Physics2D.Raycast(transform.position, direction, 5, wallMask);
-        
+        RaycastHit2D hit = Physics2D.Raycast(transform.position, direction, 5, wallMask);     
         
         if (hit)
         {            
             if (hit.collider.CompareTag("Wall"))
             {
-                Debug.Log("Edit");
                 isEditingWall = true;
-                PositionEditWall(hit.collider.transform);
+                disabledWall = hit.collider.transform.root.gameObject;
+
+                regularWall = disabledWall.transform.GetChild(0).gameObject;
+                leftWall = disabledWall.transform.GetChild(1).gameObject;
+                rightWall = disabledWall.transform.GetChild(2).gameObject;
+
+                if (leftWall.activeInHierarchy)
+                {
+                    rightEditPressed.SetActive(true);
+                    rightEdit.SetActive(false);
+                }
+
+                if (rightWall.activeInHierarchy)
+                {
+                    leftEditPressed.SetActive(true);
+                    leftEdit.SetActive(false);
+                }
+
+                PositionEditWall(disabledWall.transform);
+
                 return true;
             }
         }
@@ -110,18 +163,50 @@ public class Editing : MonoBehaviour
     
     void Confirm()
     {
+        //Debug.Log(disabledWall.transform.childCount);
+
+        // if both are pressed, don't edit and show regular wall
+        if ((leftEditPressed.activeInHierarchy && rightEditPressed.activeInHierarchy) || (leftEdit.activeInHierarchy && rightEdit.activeInHierarchy))
+        {
+            // showRegularWall
+            regularWall.SetActive(true);
+
+            leftWall.SetActive(false);
+            rightWall.SetActive(false);
+        }
+
         if (leftEditPressed.activeInHierarchy)
         {
-            disabledWall.Get
+            rightWall.SetActive(true);
+            leftWall.SetActive(false);
+            regularWall.SetActive(false);
+        } else if (rightEditPressed.activeInHierarchy)
+        {
+            leftWall.SetActive(true);
+            rightWall.SetActive(false);
+            regularWall.SetActive(false);
         }
+
+        ResetEditWall();
+        editWall.SetActive(false);
+        disabledWall.SetActive(true);
+        Movement.Instance.StoppedEditing();
+
+        isEditingWall = false;
+    }
+
+    void ResetEditWall()
+    {
+        leftEdit.SetActive(true);
+        rightEdit.SetActive(true);
+        leftEditPressed.SetActive(false);
+        rightEditPressed.SetActive(false);
     }
 
     void PositionEditWall(Transform wall)
     {
         editWall.transform.position = wall.position;
         editWall.transform.rotation = wall.rotation;
-
-        disabledWall = wall.gameObject;
 
         EnableEditingWall(true);
     }

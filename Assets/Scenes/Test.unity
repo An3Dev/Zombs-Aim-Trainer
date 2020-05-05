@@ -22226,7 +22226,7 @@ MonoBehaviour:
   speed: 5
   mainCamera: {fileID: 519420031}
   playerState: 0
-  isTraining: 0
+  isTraining: 1
   rb: {fileID: 951923436}
 --- !u!114 &951923434
 MonoBehaviour:
@@ -22303,6 +22303,8 @@ MonoBehaviour:
   wallMask:
     serializedVersion: 2
     m_Bits: 256
+  editOnRelease: 0
+  editDistance: 8
 --- !u!1001 &1055741319
 PrefabInstance:
   m_ObjectHideFlags: 0

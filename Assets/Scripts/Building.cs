@@ -29,11 +29,20 @@ public class Building : MonoBehaviour
         {
             tempWallPosition = PositionWall();
 
-            //RaycastHit2D hit = Physics2D.Linecast(transform.position, tempWallPosition, buildsMask);
+            RaycastHit2D hit = Physics2D.Linecast(transform.position, tempWallPosition, buildsMask);
 
-            //if (hit)
+            if (hit)
+            {
+                //Debug.Log(hit.transform.name);
+                wallPreview.SetActive(false);
+            } else
+            {
+                wallPreview.SetActive(true);
+            }
+
+            //if (Physics2D.OverlapPoint(tempWallPosition, buildsMask))
             //{
-            //    Debug.Log(hit.transform.name);
+            //    return;
             //}
 
             wallPreview.transform.position = tempWallPosition;

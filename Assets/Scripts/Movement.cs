@@ -23,6 +23,10 @@ public class Movement : MonoBehaviour
 
     public Rigidbody2D rb;
 
+
+    PlayerState previousState;
+
+    bool confirmedEditThisFrame = false;
     // Start is called before the first frame update
     void Start()
     {
@@ -61,26 +65,54 @@ public class Movement : MonoBehaviour
         if(Input.GetKeyDown(KeyCode.Q))
         {
             playerState = PlayerState.Building;
-            buildingScript.StartBuilding();
+            StartBuilding();
         }
 
         if(Input.GetKeyDown(KeyCode.LeftShift))
         {
-            PlayerState previousState = playerState;
+            //if (confirmedEditThisFrame)
+            //{
+            //    confirmedEditThisFrame = false;
+            //    Debug.Log("Confirmed this frame");
+            //    return;
+            //}
+
+            previousState = playerState;
 
             playerState = PlayerState.Editing;
             playerState = editingScript.Edit() ? PlayerState.Editing : previousState;
 
-            buildingScript.StopBuilding();
-
+            if (playerState == PlayerState.Editing)
+            {
+                buildingScript.StopBuilding();
+                
+            } else if (playerState == PlayerState.Building)
+            {
+                StartBuilding();
+            }
         }
 
         // if scrollwheel is used switch to weapon
         if (Input.GetAxis("Mouse ScrollWheel") > 0.25f || Input.GetAxis("Mouse ScrollWheel") < -0.25f || Input.GetKey(KeyCode.Alpha1))
         {
+            if (playerState == PlayerState.Editing)
+            {
+                CancelEdit();
+            }
             playerState = PlayerState.Weapon;
             buildingScript.StopBuilding();
+
         }
+    }
+
+    void StartBuilding()
+    {
+        buildingScript.StartBuilding();
+    }
+
+    void CancelEdit()
+    {
+        Editing.Instance.CancelEdit();
     }
 
     public void FixedUpdate()
@@ -92,9 +124,23 @@ public class Movement : MonoBehaviour
             force = force.normalized;
         }
         rb.velocity = force * speed;
+
+        if (xMovement == 0 && yMovement == 0)
+        {
+            rb.velocity = Vector2.zero;
+            rb.Sleep();
+        }
     }
 
-
+    public void StoppedEditing()
+    {
+        playerState = previousState;
+        if (previousState == PlayerState.Building)
+        {
+            StartBuilding();
+        }
+        confirmedEditThisFrame = true;
+    }
     void Rotate()
     {
         Vector3 mouseWorldPos = mainCamera.ScreenToWorldPoint(Input.mousePosition);
