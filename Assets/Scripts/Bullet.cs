@@ -8,6 +8,7 @@ public class Bullet : MonoBehaviour
     public float speed;
 
     public GameObject effectPrefab;
+    float damage = 25;
     // Start is called before the first frame update
     void Start()
     {
@@ -35,12 +36,18 @@ public class Bullet : MonoBehaviour
         if (collider.CompareTag("Target"))
         {
             Destroy(collider);
-                SpawnTargets.Instance.DestroyedTarget();
+            SpawnTargets.Instance.DestroyedTarget();
         }
 
         if (collider.gameObject.layer == LayerMask.NameToLayer("Destroyable"))
         {
-            Destroy(collider);
+            try 
+            {
+                collider.transform.root.GetComponent<IDamageable<float>>().Damage(damage);
+            } catch
+            {
+                // do nothing if object doesn't have damage component
+            }
         }
         GameObject effect = Instantiate(effectPrefab, collisionPoint, Quaternion.identity);
         Destroy(effect, 3);

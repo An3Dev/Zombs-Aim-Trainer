@@ -64,7 +64,6 @@ public class Editing : MonoBehaviour
                 if (resetOnRelease)
                 {
                     Confirm();
-                    Debug.Log("Reset");
                 }
             }
 
