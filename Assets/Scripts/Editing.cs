@@ -143,6 +143,7 @@ public class Editing : MonoBehaviour
         {            
             if (hit.collider.CompareTag("Wall"))
             {
+
                 isEditingWall = true;
                 disabledWall = hit.collider.transform.root.gameObject;
 
@@ -150,7 +151,7 @@ public class Editing : MonoBehaviour
                 leftWall = disabledWall.transform.GetChild(1).gameObject;
                 rightWall = disabledWall.transform.GetChild(2).gameObject;
 
-                if (leftWall.activeInHierarchy)
+                if (leftWall.activeInHierarchy) 
                 {
                     rightEditPressed.SetActive(true);
                     rightEdit.SetActive(false);
@@ -167,7 +168,6 @@ public class Editing : MonoBehaviour
                 return true;
             }
         }
-
         return false;
     }
     
