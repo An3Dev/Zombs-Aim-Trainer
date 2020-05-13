@@ -113,6 +113,7 @@ public class Movement : MonoBehaviour
     void CancelEdit()
     {
         Editing.Instance.CancelEdit();
+
     }
 
     public void FixedUpdate()

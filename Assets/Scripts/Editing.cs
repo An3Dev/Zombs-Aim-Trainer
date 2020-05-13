@@ -76,12 +76,12 @@ public class Editing : MonoBehaviour
 
                 RaycastHit2D hit = Physics2D.Raycast(transform.position, direction, editDistance, wallMask);
 
-                Debug.DrawLine(transform.position, transform.position + direction);
+                Debug.DrawLine(transform.position, (transform.position + direction) * editDistance);
 
                 if (hit)
                 {
                     string colliderName = hit.collider.name;
-
+                    
                     if (colliderName == "LeftEdit" && lastEdited != "LeftEditPress")
                     {
                         leftEdit.SetActive(false);
@@ -118,9 +118,10 @@ public class Editing : MonoBehaviour
 
     public void CancelEdit()
     {
-        editWall.SetActive(false);
-        ResetEditWall();
-        disabledWall.SetActive(true);
+        EnableEditingWall(false);
+        disabledWall = null;
+        isEditingWall = false;
+        //ResetEditWall();     
     }
 
     public bool Edit()
@@ -131,6 +132,7 @@ public class Editing : MonoBehaviour
 
             // confirm
             Confirm();
+            
             return false;
         }
         Vector3 mouseWorldPos = mainCamera.ScreenToWorldPoint(Input.mousePosition);
@@ -173,7 +175,14 @@ public class Editing : MonoBehaviour
     
     void Confirm()
     {
-        //Debug.Log(disabledWall.transform.childCount);
+        Debug.Log("Confirm");
+        for (int i = 0; i < disabledWall.transform.childCount; i++)
+        {
+            if (disabledWall.transform.GetChild(i).gameObject.activeInHierarchy)
+            {
+                disabledWall.transform.GetChild(i).GetComponent<SpriteRenderer>().enabled = true;
+            }
+        }
 
         // if both are pressed, don't edit and show regular wall
         if ((leftEditPressed.activeInHierarchy && rightEditPressed.activeInHierarchy) || (leftEdit.activeInHierarchy && rightEdit.activeInHierarchy))
@@ -223,7 +232,14 @@ public class Editing : MonoBehaviour
 
     void EnableEditingWall(bool enable)
     {
-        disabledWall.gameObject.SetActive(!enable);
+        for (int i = 0; i < disabledWall.transform.childCount; i++)
+        {
+            if (disabledWall.transform.GetChild(i).gameObject.activeInHierarchy)
+            {
+                disabledWall.transform.GetChild(i).GetComponent<SpriteRenderer>().enabled = !enable;
+            }
+        }
+        //disabledWall.gameObject.SetActive(!enable);
 
         editWall.SetActive(enable);
     }

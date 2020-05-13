@@ -19,7 +19,6 @@ public class WallHealth : MonoBehaviour, IDamageable<float>
         int toInt = (int)wallType;
         maxHealth = wallHealth[toInt];
         currentHealth = maxHealth;
-        Debug.Log(currentHealth);
     }
 
     public void Damage(float damageTaken)
