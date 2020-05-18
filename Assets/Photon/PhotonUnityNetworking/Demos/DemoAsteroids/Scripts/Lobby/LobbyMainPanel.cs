@@ -41,6 +41,8 @@ namespace Photon.Pun.Demo.Asteroids
         private Dictionary<string, GameObject> roomListEntries;
         private Dictionary<int, GameObject> playerListEntries;
 
+        public string gameSceneName = "DemoAsteroids-GameScene";
+
         #region UNITY
 
         public void Awake()
@@ -261,7 +263,7 @@ namespace Photon.Pun.Demo.Asteroids
             PhotonNetwork.CurrentRoom.IsOpen = false;
             PhotonNetwork.CurrentRoom.IsVisible = false;
 
-            PhotonNetwork.LoadLevel("DemoAsteroids-GameScene");
+            PhotonNetwork.LoadLevel(gameSceneName);
         }
 
         #endregion

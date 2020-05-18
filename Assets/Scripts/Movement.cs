@@ -1,7 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-
+using Photon.Pun;
 public class Movement : MonoBehaviour
 {
 
@@ -27,6 +27,8 @@ public class Movement : MonoBehaviour
     PlayerState previousState;
 
     bool confirmedEditThisFrame = false;
+
+    PhotonView photonView;
     // Start is called before the first frame update
     void Start()
     {
@@ -34,11 +36,19 @@ public class Movement : MonoBehaviour
         buildingScript = GetComponent<Building>();
         editingScript = GetComponent<Editing>();
         Instance = this;
+        photonView = GetComponent<PhotonView>();
+
+        mainCamera = Camera.main;
     }
 
     // Update is called once per frame
     void Update()
     {
+        if (!photonView.IsMine)
+        {
+            return;
+        }
+
         xMovement = Input.GetAxis("Horizontal");
         yMovement = Input.GetAxis("Vertical");
 
