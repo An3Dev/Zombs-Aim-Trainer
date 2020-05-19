@@ -13,7 +13,10 @@ namespace An3Apps
         // Start is called before the first frame update
         void Start()
         {
-            PhotonNetwork.Instantiate("Player", Vector3.left * 8 + (Vector3.right * PhotonNetwork.CurrentRoom.PlayerCount * PhotonNetwork.LocalPlayer.GetPlayerNumber()), Quaternion.identity);
+            if (PhotonNetwork.IsConnected)
+            {
+                PhotonNetwork.Instantiate("Player", Vector3.left * 8 + (Vector3.right * PhotonNetwork.CurrentRoom.PlayerCount * PhotonNetwork.LocalPlayer.GetPlayerNumber()), Quaternion.identity);
+            }
         }
 
         // Update is called once per frame

@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using Photon.Pun;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -6,7 +7,7 @@ public class Editing : MonoBehaviour
 {
 
     public GameObject editWall;
-    public GameObject leftEdit, rightEdit, leftEditPressed, rightEditPressed;
+    public GameObject leftEdit, rightEdit, leftEditPress, rightEditPress;
 
     bool isEditingWall = false;
 
@@ -26,11 +27,23 @@ public class Editing : MonoBehaviour
     public bool resetOnRelease = true;
 
     public float editDistance;
-    // Start is called before the first frame update
-    void Start()
+    
+    void Awake()
     {
         mainCamera = Camera.main;
         Instance = this;
+
+        editWall = GameObject.Find("EditWall");
+        editWall.SetActive(true);
+        leftEdit = GameObject.Find("LeftEdit");
+        rightEdit = GameObject.Find("RightEdit");
+        leftEditPress = GameObject.Find("LeftEditPress");
+        rightEditPress = GameObject.Find("RightEditPress");
+
+
+        leftEditPress.SetActive(false);
+        rightEditPress.SetActive(false);
+        editWall.SetActive(false);
     }
 
     // Update is called once per frame
@@ -53,9 +66,9 @@ public class Editing : MonoBehaviour
                 
                 lastEdited = "";
                 leftEdit.SetActive(true);
-                leftEditPressed.SetActive(false);
+                leftEditPress.SetActive(false);
                 rightEdit.SetActive(true);
-                rightEditPressed.SetActive(false);
+                rightEditPress.SetActive(false);
                 
             }
 
@@ -81,23 +94,23 @@ public class Editing : MonoBehaviour
                 if (hit)
                 {
                     string colliderName = hit.collider.name;
-                    
+                    Debug.Log(colliderName);
                     if (colliderName == "LeftEdit" && lastEdited != "LeftEditPress")
                     {
                         leftEdit.SetActive(false);
-                        leftEditPressed.SetActive(true);
+                        leftEditPress.SetActive(true);
                         lastEdited = hit.collider.gameObject.name;
                     }
                     else if (colliderName == "RightEdit" && lastEdited != "RightEditPress")
                     {
                         rightEdit.SetActive(false);
-                        rightEditPressed.SetActive(true);
+                        rightEditPress.SetActive(true);
                         lastEdited = hit.collider.gameObject.name;
 
                     }
                     else if (colliderName == "LeftEditPress" && lastEdited != "LeftEdit")
                     {
-                        leftEditPressed.SetActive(false);
+                        leftEditPress.SetActive(false);
 
                         leftEdit.SetActive(true);
                         lastEdited = hit.collider.gameObject.name;
@@ -105,7 +118,7 @@ public class Editing : MonoBehaviour
                     }
                     else if (colliderName == "RightEditPress" && lastEdited != "RightEdit")
                     {
-                        rightEditPressed.SetActive(false);
+                        rightEditPress.SetActive(false);
 
                         rightEdit.SetActive(true);
                         lastEdited = hit.collider.gameObject.name;
@@ -155,13 +168,13 @@ public class Editing : MonoBehaviour
 
                 if (leftWall.activeInHierarchy) 
                 {
-                    rightEditPressed.SetActive(true);
+                    rightEditPress.SetActive(true);
                     rightEdit.SetActive(false);
                 }
 
                 if (rightWall.activeInHierarchy)
                 {
-                    leftEditPressed.SetActive(true);
+                    leftEditPress.SetActive(true);
                     leftEdit.SetActive(false);
                 }
 
@@ -185,7 +198,7 @@ public class Editing : MonoBehaviour
         }
 
         // if both are pressed, don't edit and show regular wall
-        if ((leftEditPressed.activeInHierarchy && rightEditPressed.activeInHierarchy) || (leftEdit.activeInHierarchy && rightEdit.activeInHierarchy))
+        if ((leftEditPress.activeInHierarchy && rightEditPress.activeInHierarchy) || (leftEdit.activeInHierarchy && rightEdit.activeInHierarchy))
         {
             // showRegularWall
             regularWall.SetActive(true);
@@ -194,12 +207,12 @@ public class Editing : MonoBehaviour
             rightWall.SetActive(false);
         }
 
-        if (leftEditPressed.activeInHierarchy)
+        if (leftEditPress.activeInHierarchy)
         {
             rightWall.SetActive(true);
             leftWall.SetActive(false);
             regularWall.SetActive(false);
-        } else if (rightEditPressed.activeInHierarchy)
+        } else if (rightEditPress.activeInHierarchy)
         {
             leftWall.SetActive(true);
             rightWall.SetActive(false);
@@ -218,8 +231,8 @@ public class Editing : MonoBehaviour
     {
         leftEdit.SetActive(true);
         rightEdit.SetActive(true);
-        leftEditPressed.SetActive(false);
-        rightEditPressed.SetActive(false);
+        leftEditPress.SetActive(false);
+        rightEditPress.SetActive(false);
     }
 
     void PositionEditWall(Transform wall)
@@ -232,6 +245,10 @@ public class Editing : MonoBehaviour
 
     void EnableEditingWall(bool enable)
     {
+        if (disabledWall == null)
+        {
+            return;
+        }
         for (int i = 0; i < disabledWall.transform.childCount; i++)
         {
             if (disabledWall.transform.GetChild(i).gameObject.activeInHierarchy)

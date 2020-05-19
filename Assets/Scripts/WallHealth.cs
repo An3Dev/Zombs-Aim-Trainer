@@ -1,7 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-
+using Photon.Pun;
 public class WallHealth : MonoBehaviour, IDamageable<float>
 {
     public enum WallType { Wood, Brick, Metal, Electric }
@@ -46,7 +46,8 @@ public class WallHealth : MonoBehaviour, IDamageable<float>
         if(currentHealth <= 0)
         {
             Debug.Log(transform.name + " was destroyed");
-            Destroy(gameObject);
+            //Destroy(gameObject);
+            PhotonNetwork.Destroy(gameObject);
         }
     }
 

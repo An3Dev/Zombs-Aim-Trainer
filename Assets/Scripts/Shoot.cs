@@ -1,7 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-
+using Photon.Pun;
 public class Shoot : MonoBehaviour
 {
 
@@ -16,6 +16,8 @@ public class Shoot : MonoBehaviour
 
     public int timesShot;
 
+    PhotonView photonView;
+
     private void Awake()
     {
 
@@ -24,6 +26,7 @@ public class Shoot : MonoBehaviour
     void Start()
     {
         mainCamera = Camera.main;
+        photonView = transform.root.GetComponent<PhotonView>();
     }
 
     // Update is called once per frame
@@ -32,19 +35,28 @@ public class Shoot : MonoBehaviour
         
     }
 
-    public void ShootWeapon()
+
+    public void TryShooting()
     {
         if (Time.timeSinceLevelLoad - lastTimeShot > shootRate)
         {
             Vector3 mouseWorldPos = mainCamera.ScreenToWorldPoint(Input.mousePosition);
             mouseWorldPos = new Vector3(mouseWorldPos.x, mouseWorldPos.y, 0);
             Vector3 direction = (mouseWorldPos - transform.root.position).normalized;
-
-            GameObject bullet = Instantiate(bulletPrefab, bulletOrigin.position, Quaternion.identity);
-            bullet.transform.up = direction;
+            
+            photonView.RPC("SpawnBullet", RpcTarget.AllViaServer, bulletOrigin.position, direction);
 
             lastTimeShot = Time.timeSinceLevelLoad;
             timesShot++;
+
         }
     } 
+
+    [PunRPC]
+    public void SpawnBullet(Vector3 location, Vector3 direction)
+    {
+        //Debug.Log("Info: " + info);
+        GameObject bullet = Instantiate(bulletPrefab, location, Quaternion.identity);
+        bullet.transform.up = direction;
+    }
 }

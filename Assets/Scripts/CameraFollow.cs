@@ -19,12 +19,23 @@ public class CameraFollow : MonoBehaviour
                 break;
             }
         }
-        target = GameObject.FindGameObjectWithTag("Player").transform;
+        //target = GameObject.FindGameObjectWithTag("Player").transform;
     }
 
     // Update is called once per frame
     void LateUpdate()
     {
+        if (target == null)
+        {
+            foreach (GameObject player in GameObject.FindGameObjectsWithTag("Player"))
+            {
+                if (player.GetComponent<PhotonView>().IsMine)
+                {
+                    target = player.GetComponent<PhotonView>().transform;
+                    break;
+                }
+            }
+        }
         transform.position = target.position + transform.forward * -1;
     }
 }

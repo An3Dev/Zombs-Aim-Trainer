@@ -1,5 +1,5 @@
 ﻿using UnityEngine;
-
+using Photon.Pun;
 public class Building : MonoBehaviour
 {
 
@@ -20,6 +20,9 @@ public class Building : MonoBehaviour
     void Start()
     {
         mainCamera = Camera.main;
+        
+        wallPreview = GameObject.Find("WallPreview");
+        wallPreview.SetActive(false);
     }
 
     // Update is called once per frame
@@ -70,7 +73,9 @@ public class Building : MonoBehaviour
         {
             return;
         }
-        Instantiate(wallPrefab, tempWallPosition, tempWallRotation);
+
+        PhotonNetwork.InstantiateSceneObject("Wall", tempWallPosition, tempWallRotation);
+        //Instantiate(wallPrefab, tempWallPosition, tempWallRotation);
         //Debug.Log(tempWallPosition);
     }
 
@@ -79,7 +84,6 @@ public class Building : MonoBehaviour
         Vector3 mouseWorldPos = mainCamera.ScreenToWorldPoint(Input.mousePosition);
         mouseWorldPos = new Vector3(mouseWorldPos.x, mouseWorldPos.y, 0);
         Vector3 direction = (mouseWorldPos - transform.position).normalized;
-
 
         Vector3 finalPosition = Vector3.zero;
 

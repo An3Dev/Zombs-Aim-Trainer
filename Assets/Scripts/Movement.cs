@@ -28,9 +28,9 @@ public class Movement : MonoBehaviour
 
     bool confirmedEditThisFrame = false;
 
-    PhotonView photonView;
+    public PhotonView photonView;
     // Start is called before the first frame update
-    void Start()
+    void Awake()
     {
         activeShootScript = GetComponentInChildren<Shoot>();
         buildingScript = GetComponent<Building>();
@@ -39,6 +39,12 @@ public class Movement : MonoBehaviour
         photonView = GetComponent<PhotonView>();
 
         mainCamera = Camera.main;
+
+        if(!photonView.IsMine)
+        {
+            buildingScript.enabled = false;
+            editingScript.GetComponent<Editing>().enabled = false;
+        }
     }
 
     // Update is called once per frame
@@ -64,7 +70,7 @@ public class Movement : MonoBehaviour
         {
             if(playerState == PlayerState.Weapon)
             {
-                activeShootScript.ShootWeapon();
+                activeShootScript.TryShooting();
                 buildingScript.StopBuilding();
             } else if (playerState == PlayerState.Building)
             {
