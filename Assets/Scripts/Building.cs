@@ -62,7 +62,7 @@ public class Building : MonoBehaviour
     }
 
     public void StopBuilding()
-    {
+    { 
         isBuilding = false;
         wallPreview.SetActive(false);
     }
@@ -74,11 +74,12 @@ public class Building : MonoBehaviour
             return;
         }
 
-        PhotonNetwork.InstantiateSceneObject("Wall", tempWallPosition, tempWallRotation);
+        GameObject wall = PhotonNetwork.InstantiateSceneObject("Wall", tempWallPosition, tempWallRotation);
         //Instantiate(wallPrefab, tempWallPosition, tempWallRotation);
         //Debug.Log(tempWallPosition);
     }
 
+   
     Vector2 PositionWall()
     {
         Vector3 mouseWorldPos = mainCamera.ScreenToWorldPoint(Input.mousePosition);
