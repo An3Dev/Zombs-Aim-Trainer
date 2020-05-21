@@ -22,14 +22,19 @@ public class Editing : MonoBehaviour
     public static Editing Instance;
 
     GameObject leftWall, rightWall, regularWall;
+    PhotonView leftWallPhotonView, rightWallPhotonView, regularWallPhotonView;
 
     public bool editOnRelease;
     public bool resetOnRelease = true;
 
     public float editDistance;
+
+    PhotonView photonView;
     
     void Awake()
     {
+
+        photonView = GetComponent<PhotonView>();
         mainCamera = Camera.main;
         Instance = this;
 
@@ -166,6 +171,10 @@ public class Editing : MonoBehaviour
                 leftWall = disabledWall.transform.GetChild(1).gameObject;
                 rightWall = disabledWall.transform.GetChild(2).gameObject;
 
+                regularWallPhotonView.GetComponent<PhotonView>();
+                leftWallPhotonView.GetComponent<PhotonView>();
+                rightWallPhotonView.GetComponent<PhotonView>();
+
                 if (leftWall.activeInHierarchy) 
                 {
                     rightEditPress.SetActive(true);
@@ -188,12 +197,13 @@ public class Editing : MonoBehaviour
     
     void Confirm()
     {
-        Debug.Log("Confirm");
+
+        // enables sprite renderer of active wall.
         for (int i = 0; i < disabledWall.transform.childCount; i++)
         {
             if (disabledWall.transform.GetChild(i).gameObject.activeInHierarchy)
             {
-                disabledWall.transform.GetChild(i).GetComponent<SpriteRenderer>().enabled = true;
+                disabledWall.transform.GetChild(i).GetComponent<SpriteRenderer>().enabled = true;                
             }
         }
 
@@ -202,7 +212,7 @@ public class Editing : MonoBehaviour
         {
             // showRegularWall
             regularWall.SetActive(true);
-
+            
             leftWall.SetActive(false);
             rightWall.SetActive(false);
         }
@@ -210,7 +220,11 @@ public class Editing : MonoBehaviour
         if (leftEditPress.activeInHierarchy)
         {
             rightWall.SetActive(true);
+            photonView.RPC("EnableGameObject", RpcTarget.AllBufferedViaServer, true, rightWallPhotonView.ViewID);
+
             leftWall.SetActive(false);
+            photonView.RPC("EnableGameObject", RpcTarget.AllBufferedViaServer, false, leftWallPhotonView.ViewID);
+
             regularWall.SetActive(false);
         } else if (rightEditPress.activeInHierarchy)
         {

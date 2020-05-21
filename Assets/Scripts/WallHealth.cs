@@ -8,17 +8,20 @@ public class WallHealth : MonoBehaviour, IDamageable<float>
 
     public WallType wallType = WallType.Wood;
 
-    int[] wallHealth = { 100, 150, 300, 150 };
+    int[] wallHealth = { 100, 150, 300 };
 
     int maxHealth;
 
     int currentHealth;
+
+    PhotonView photonView;
 
     private void Awake()
     {
         int toInt = (int)wallType;
         maxHealth = wallHealth[toInt];
         currentHealth = maxHealth;
+        photonView = GetComponent<PhotonView>();
     }
 
     public void Damage(float damageTaken)
@@ -47,6 +50,8 @@ public class WallHealth : MonoBehaviour, IDamageable<float>
         {
             Debug.Log(transform.name + " was destroyed");
             //Destroy(gameObject);
+
+            //photonView.gameObject.SetActive(false);
             PhotonNetwork.Destroy(gameObject);
         }
     }

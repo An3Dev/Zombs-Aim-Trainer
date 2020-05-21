@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using UnityEngine;
 using Photon.Pun;
+using System.Linq;
+
 public class Movement : MonoBehaviour
 {
 
@@ -26,9 +28,9 @@ public class Movement : MonoBehaviour
 
     PlayerState previousState;
 
-    bool confirmedEditThisFrame = false;
-
     public PhotonView photonView;
+
+    GameObject[] wallsList;
     // Start is called before the first frame update
     void Awake()
     {
@@ -42,9 +44,40 @@ public class Movement : MonoBehaviour
 
         if(!photonView.IsMine)
         {
-            buildingScript.enabled = false;
-            editingScript.GetComponent<Editing>().enabled = false;
+            Destroy(buildingScript);
+            Destroy(GetComponent<Movement>());
+            Destroy(editingScript);
+            //buildingScript.enabled = false;
+            //editingScript.GetComponent<Editing>().enabled = false;
         }
+    }
+
+    [PunRPC]
+    public void EnableGameObject(bool setActive, int photonID)
+    {
+        PhotonView Disable = PhotonView.Find(photonID);
+        Disable.transform.gameObject.SetActive(setActive);
+    }
+
+    [PunRPC]
+    public void AddWall(GameObject wall)
+    {
+        wallsList.Append(wall);
+    }
+
+    public void FindWallInArray(GameObject gameObject)
+    {
+        int index = 0;
+        for(int i = 0; i < wallsList.Length; i++)
+        {
+            if (wallsList[i] == gameObject)
+            {
+                index = i;
+                break;
+            }
+        }
+
+        Debug.Log(wallsList[index].transform.position);
     }
 
     // Update is called once per frame
@@ -86,13 +119,6 @@ public class Movement : MonoBehaviour
 
         if(Input.GetKeyDown(KeyCode.LeftShift))
         {
-            //if (confirmedEditThisFrame)
-            //{
-            //    confirmedEditThisFrame = false;
-            //    Debug.Log("Confirmed this frame");
-            //    return;
-            //}
-
             previousState = playerState;
 
             playerState = PlayerState.Editing;
@@ -156,7 +182,7 @@ public class Movement : MonoBehaviour
         {
             StartBuilding();
         }
-        confirmedEditThisFrame = true;
+        
     }
     void Rotate()
     {

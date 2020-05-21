@@ -16,9 +16,12 @@ public class Building : MonoBehaviour
     public GameObject wallPreview;
 
     public LayerMask buildsMask;
+
+    PhotonView photonView;
     // Start is called before the first frame update
     void Start()
     {
+        photonView = GetComponent<PhotonView>();
         mainCamera = Camera.main;
         
         wallPreview = GameObject.Find("WallPreview");
@@ -74,7 +77,9 @@ public class Building : MonoBehaviour
             return;
         }
 
-        GameObject wall = PhotonNetwork.InstantiateSceneObject("Wall", tempWallPosition, tempWallRotation);
+        PhotonNetwork.Instantiate("Wall", tempWallPosition, tempWallRotation);
+
+        
         //Instantiate(wallPrefab, tempWallPosition, tempWallRotation);
         //Debug.Log(tempWallPosition);
     }
@@ -112,39 +117,6 @@ public class Building : MonoBehaviour
         finalPosition = GetGridPosition(finalDirPoint);
 
         //Debug.DrawLine(transform.position, finalPosition, Color.red);
-
-        // if placing horizontal wall
-        if (tempWallRotation.eulerAngles != Vector3.zero)
-        {
-            //if (finalPosition.x > GetGridPosition(transform.position).x)
-            //{
-            //    //Debug.Log("Right");
-            //    finalPosition.x -= gridSpacing / 2;
-
-            //}
-            //else if (finalPosition.x < GetGridPosition(transform.position).x)
-            //{
-            //    //Debug.Log("Left");
-            //    finalPosition.x += gridSpacing / 2;
-            //}
-
-            //if (finalPosition.y > GetGridPosition(transform.position).y)
-            //{
-            //    //Debug.Log("Up");
-            //    finalPosition.y -= gridSpacing / 2;
-            //}
-            //else if (finalPosition.y < GetGridPosition(transform.position).y)
-            //{
-            //    //Debug.Log("Down");
-            //    finalPosition.y += gridSpacing / 2;
-            //}
-            //else if (finalPosition.y == GetGridPosition(transform.position).y)
-            //{
-            //    //Debug.Log("Equal");
-            //}
-        }
-        //Debug.Log(finalPosition);
-
         return finalPosition;
     }
 

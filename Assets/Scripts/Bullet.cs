@@ -20,10 +20,11 @@ public class Bullet : MonoBehaviour
     void Update()
     {
         Physics2D.queriesHitTriggers = false;
-        RaycastHit2D hit = Physics2D.Raycast(transform.position, transform.up, 0.2f * Time.deltaTime);
+        RaycastHit2D hit = Physics2D.Raycast(transform.position, transform.up, 0.05f);
         Physics2D.queriesHitTriggers = true;
         if (hit.collider != null)
         {
+
             HitSomething(hit.collider.gameObject, hit.point);
         }
         Debug.DrawRay(transform.position, transform.up);
