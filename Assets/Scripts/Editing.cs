@@ -39,7 +39,6 @@ public class Editing : MonoBehaviour
         Instance = this;
 
         editWall = GameObject.Find("EditWall");
-        editWall.SetActive(true);
         leftEdit = GameObject.Find("LeftEdit");
         rightEdit = GameObject.Find("RightEdit");
         leftEditPress = GameObject.Find("LeftEditPress");
@@ -99,7 +98,6 @@ public class Editing : MonoBehaviour
                 if (hit)
                 {
                     string colliderName = hit.collider.name;
-                    Debug.Log(colliderName);
                     if (colliderName == "LeftEdit" && lastEdited != "LeftEditPress")
                     {
                         leftEdit.SetActive(false);
@@ -171,10 +169,16 @@ public class Editing : MonoBehaviour
                 leftWall = disabledWall.transform.GetChild(1).gameObject;
                 rightWall = disabledWall.transform.GetChild(2).gameObject;
 
-                regularWallPhotonView.GetComponent<PhotonView>();
-                leftWallPhotonView.GetComponent<PhotonView>();
-                rightWallPhotonView.GetComponent<PhotonView>();
-
+                try
+                {
+                    regularWallPhotonView =  regularWall.GetComponent<PhotonView>();
+                    leftWallPhotonView = leftWall.GetComponent<PhotonView>();
+                    rightWallPhotonView = rightWall.GetComponent<PhotonView>();
+                } catch
+                {
+                    Debug.Log("No photonView");
+                }
+                
                 if (leftWall.activeInHierarchy) 
                 {
                     rightEditPress.SetActive(true);
@@ -207,30 +211,39 @@ public class Editing : MonoBehaviour
             }
         }
 
-        // if both are pressed, don't edit and show regular wall
+        // if both are pressed, don't edit and show regular wall or if both edit squares are not selected
         if ((leftEditPress.activeInHierarchy && rightEditPress.activeInHierarchy) || (leftEdit.activeInHierarchy && rightEdit.activeInHierarchy))
         {
             // showRegularWall
             regularWall.SetActive(true);
-            
+            photonView.RPC("EnableGameObject", RpcTarget.AllBufferedViaServer, true, regularWallPhotonView.ViewID);
+
             leftWall.SetActive(false);
             rightWall.SetActive(false);
         }
 
         if (leftEditPress.activeInHierarchy)
         {
-            rightWall.SetActive(true);
+            rightWall.SetActive(true);          
+            leftWall.SetActive(false);
+            regularWall.SetActive(false);
+
+            photonView.RPC("EnableGameObject", RpcTarget.AllBufferedViaServer, false, regularWallPhotonView.ViewID);
+            photonView.RPC("EnableGameObject", RpcTarget.AllBufferedViaServer, false, leftWallPhotonView.ViewID);
             photonView.RPC("EnableGameObject", RpcTarget.AllBufferedViaServer, true, rightWallPhotonView.ViewID);
 
-            leftWall.SetActive(false);
-            photonView.RPC("EnableGameObject", RpcTarget.AllBufferedViaServer, false, leftWallPhotonView.ViewID);
 
-            regularWall.SetActive(false);
-        } else if (rightEditPress.activeInHierarchy)
+        }
+        else if (rightEditPress.activeInHierarchy)
         {
-            leftWall.SetActive(true);
-            rightWall.SetActive(false);
+            leftWall.SetActive(true);           
+            rightWall.SetActive(false);         
             regularWall.SetActive(false);
+
+            photonView.RPC("EnableGameObject", RpcTarget.AllBufferedViaServer, true, leftWallPhotonView.ViewID);
+            photonView.RPC("EnableGameObject", RpcTarget.AllBufferedViaServer, false, rightWallPhotonView.ViewID);
+            photonView.RPC("EnableGameObject", RpcTarget.AllBufferedViaServer, false, regularWallPhotonView.ViewID);
+
         }
 
         ResetEditWall();
@@ -244,7 +257,9 @@ public class Editing : MonoBehaviour
     void ResetEditWall()
     {
         leftEdit.SetActive(true);
+        
         rightEdit.SetActive(true);
+
         leftEditPress.SetActive(false);
         rightEditPress.SetActive(false);
     }

@@ -31,6 +31,8 @@ public class Movement : MonoBehaviour
     public PhotonView photonView;
 
     GameObject[] wallsList;
+
+    bool enabledObject = false;
     // Start is called before the first frame update
     void Awake()
     {
@@ -57,6 +59,7 @@ public class Movement : MonoBehaviour
     {
         PhotonView Disable = PhotonView.Find(photonID);
         Disable.transform.gameObject.SetActive(setActive);
+        Debug.Log("SetActive: " + setActive + " for " + Disable.transform.name);
     }
 
     [PunRPC]
