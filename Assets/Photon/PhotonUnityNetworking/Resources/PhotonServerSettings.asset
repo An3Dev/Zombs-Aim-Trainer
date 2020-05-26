@@ -23,23 +23,23 @@ MonoBehaviour:
     Port: 0
     Protocol: 0
     AuthMode: 0
-    EnableLobbyStatistics: 0
+    EnableLobbyStatistics: 1
     NetworkLogging: 1
   DevRegion: usw
   PunLogging: 0
-  EnableSupportLogger: 0
+  EnableSupportLogger: 1
   RunInBackground: 1
   StartInOfflineMode: 0
   RpcList:
+  - AddWall
   - ClickRpc
   - DestroyRpc
   - DestroySpaceship
+  - EnableGameObject
   - Fire
   - RespawnSpaceship
   - SpawnBullet
-  - DestroyWall
-  - AddWall
-  - EnableGameObject
+  - AssignParent
   DisableAutoOpenWizard: 1
-  ShowSettings: 0
+  ShowSettings: 1
   DevRegionSetOnce: 1

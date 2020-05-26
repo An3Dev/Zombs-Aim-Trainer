@@ -7,7 +7,7 @@ public interface IKillable
     void Kill();
 }
 
-public interface IDamageable<T>
+public interface IDamageable<T, GameObject>
 {
-    void Damage(T damageTaken);
+    void Damage(T damageTaken, GameObject damager);
 }

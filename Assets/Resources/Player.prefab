@@ -159,6 +159,7 @@ GameObject:
   - component: {fileID: 7862168791663815576}
   - component: {fileID: 7862168791663815577}
   - component: {fileID: 4823749940706343999}
+  - component: {fileID: 2741049603598110945}
   m_Layer: 0
   m_Name: Player
   m_TagString: Player
@@ -399,6 +400,20 @@ MonoBehaviour:
     type: 3}
   shootRate: 0.2
   timesShot: 0
+  killsText: {fileID: 0}
+--- !u!114 &2741049603598110945
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7862168791663815569}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1c895fd83ed1ac6448a2beded8ca4740, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  maxHealth: 200
 --- !u!1 &7862168792113121304
 GameObject:
   m_ObjectHideFlags: 0

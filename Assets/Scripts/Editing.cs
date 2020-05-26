@@ -30,6 +30,8 @@ public class Editing : MonoBehaviour
     public float editDistance;
 
     PhotonView photonView;
+
+    PhotonView gameManagerPhotonView;
     
     void Awake()
     {
@@ -44,10 +46,13 @@ public class Editing : MonoBehaviour
         leftEditPress = GameObject.Find("LeftEditPress");
         rightEditPress = GameObject.Find("RightEditPress");
 
+        Debug.Log(GameObject.Find("LeftEditPress"));
 
         leftEditPress.SetActive(false);
         rightEditPress.SetActive(false);
         editWall.SetActive(false);
+
+        gameManagerPhotonView = GameObject.Find("GameManager").GetComponent<PhotonView>();
     }
 
     // Update is called once per frame
@@ -216,10 +221,14 @@ public class Editing : MonoBehaviour
         {
             // showRegularWall
             regularWall.SetActive(true);
-            photonView.RPC("EnableGameObject", RpcTarget.AllBufferedViaServer, true, regularWallPhotonView.ViewID);
+            gameManagerPhotonView.RPC("EnableGameObject", RpcTarget.AllBufferedViaServer, true, regularWallPhotonView.ViewID);
 
             leftWall.SetActive(false);
+            gameManagerPhotonView.RPC("EnableGameObject", RpcTarget.AllBufferedViaServer, false, leftWallPhotonView.ViewID);
+
             rightWall.SetActive(false);
+            gameManagerPhotonView.RPC("EnableGameObject", RpcTarget.AllBufferedViaServer, false, rightWallPhotonView.ViewID);
+
         }
 
         if (leftEditPress.activeInHierarchy)
@@ -228,9 +237,9 @@ public class Editing : MonoBehaviour
             leftWall.SetActive(false);
             regularWall.SetActive(false);
 
-            photonView.RPC("EnableGameObject", RpcTarget.AllBufferedViaServer, false, regularWallPhotonView.ViewID);
-            photonView.RPC("EnableGameObject", RpcTarget.AllBufferedViaServer, false, leftWallPhotonView.ViewID);
-            photonView.RPC("EnableGameObject", RpcTarget.AllBufferedViaServer, true, rightWallPhotonView.ViewID);
+            gameManagerPhotonView.RPC("EnableGameObject", RpcTarget.AllBufferedViaServer, false, regularWallPhotonView.ViewID);
+            gameManagerPhotonView.RPC("EnableGameObject", RpcTarget.AllBufferedViaServer, false, leftWallPhotonView.ViewID);
+            gameManagerPhotonView.RPC("EnableGameObject", RpcTarget.AllBufferedViaServer, true, rightWallPhotonView.ViewID);
 
 
         }
@@ -240,9 +249,9 @@ public class Editing : MonoBehaviour
             rightWall.SetActive(false);         
             regularWall.SetActive(false);
 
-            photonView.RPC("EnableGameObject", RpcTarget.AllBufferedViaServer, true, leftWallPhotonView.ViewID);
-            photonView.RPC("EnableGameObject", RpcTarget.AllBufferedViaServer, false, rightWallPhotonView.ViewID);
-            photonView.RPC("EnableGameObject", RpcTarget.AllBufferedViaServer, false, regularWallPhotonView.ViewID);
+            gameManagerPhotonView.RPC("EnableGameObject", RpcTarget.AllBufferedViaServer, true, leftWallPhotonView.ViewID);
+            gameManagerPhotonView.RPC("EnableGameObject", RpcTarget.AllBufferedViaServer, false, rightWallPhotonView.ViewID);
+            gameManagerPhotonView.RPC("EnableGameObject", RpcTarget.AllBufferedViaServer, false, regularWallPhotonView.ViewID);
 
         }
 

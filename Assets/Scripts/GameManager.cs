@@ -8,7 +8,7 @@ namespace An3Apps
 {
     public class GameManager : MonoBehaviour
     {
-
+        public static GameManager Instance;
         
         // Start is called before the first frame update
         void Start()
@@ -17,6 +17,8 @@ namespace An3Apps
             {
                 PhotonNetwork.Instantiate("Player", Vector3.left * 8 + (Vector3.right * PhotonNetwork.CurrentRoom.PlayerCount * PhotonNetwork.LocalPlayer.GetPlayerNumber()), Quaternion.identity);
             }
+
+            Instance = this;
         }
 
 
@@ -24,6 +26,14 @@ namespace An3Apps
         void Update()
         {
 
+        }
+
+        [PunRPC]
+        public void EnableGameObject(bool setActive, int photonID)
+        {
+            PhotonView Disable = PhotonView.Find(photonID);
+            Disable.transform.gameObject.SetActive(setActive);
+            Debug.Log("SetActive: " + setActive + " for " + Disable.transform.name);
         }
     }
 

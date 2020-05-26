@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using Photon.Pun;
-public class WallHealth : MonoBehaviour, IDamageable<float>
+public class WallHealth : MonoBehaviour, IDamageable<float, GameObject>
 {
     public enum WallType { Wood, Brick, Metal, Electric }
 
@@ -24,9 +24,10 @@ public class WallHealth : MonoBehaviour, IDamageable<float>
         photonView = GetComponent<PhotonView>();
     }
 
-    public void Damage(float damageTaken)
+    public void Damage(float damageTaken, GameObject manager)
     {
         currentHealth -= Mathf.FloorToInt(damageTaken);
+        Debug.Log("Damage walls");
         CheckHealth();
         ChangeWallAppearance(currentHealth);
     }

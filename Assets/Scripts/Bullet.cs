@@ -2,7 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-
+using Photon.Pun;
 public class Bullet : MonoBehaviour
 {
 
@@ -10,6 +10,8 @@ public class Bullet : MonoBehaviour
 
     public GameObject effectPrefab;
     float damage = 25;
+
+    PhotonView bulletShooter;
     // Start is called before the first frame update
     void Start()
     {
@@ -19,19 +21,31 @@ public class Bullet : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        Physics2D.queriesHitTriggers = false;
-        RaycastHit2D hit = Physics2D.Raycast(transform.position, transform.up, 0.05f);
-        Physics2D.queriesHitTriggers = true;
-        if (hit.collider != null)
-        {
-
-            HitSomething(hit.collider.gameObject, hit.point);
-        }
-        Debug.DrawRay(transform.position, transform.up);
+        //Physics2D.queriesHitTriggers = false;
+        //RaycastHit2D hit = Physics2D.Raycast(transform.position, transform.up, 0.05f);
+        //Physics2D.queriesHitTriggers = true;
+        //if (hit.collider != null && hit.collider.transform.root != transform.root)
+        //{
+        //    Debug.Log(hit.collider);
+        //    HitSomething(hit.collider.gameObject, hit.point);
+        //}
+        //Debug.DrawRay(transform.position, transform.up);
 
         transform.position += transform.up * speed * Time.deltaTime;
     }
 
+    public void LateUpdate()
+    {
+        Physics2D.queriesHitTriggers = false;
+        RaycastHit2D hit = Physics2D.Raycast(transform.position, transform.up, 0.05f);
+        Physics2D.queriesHitTriggers = true;
+        if (hit.collider != null && hit.collider.transform.root != transform.root)
+        {
+            Debug.Log(hit.collider);
+            HitSomething(hit.collider.gameObject, hit.point);
+        }
+        Debug.DrawRay(transform.position, transform.up);
+    }
 
     void HitSomething(GameObject collider, Vector2 collisionPoint)
     {
@@ -41,11 +55,18 @@ public class Bullet : MonoBehaviour
             SpawnTargets.Instance.DestroyedTarget();
         }
 
-        if (collider.gameObject.layer == LayerMask.NameToLayer("Destroyable"))
+        if (collider.transform.root.GetComponent<IDamageable<float, GameObject>>() != null)
         {
+            Debug.Log("damaged");
             try
             {
-                collider.transform.root.GetComponent<IDamageable<float>>().Damage(damage);
+                collider.transform.root.GetComponent<IDamageable<float, GameObject>>().Damage(damage, bulletShooter.gameObject);
+
+                //if (bulletShooter.GetComponent<PhotonView>().IsMine)
+                //{
+                //    bulletShooter.gameObject.SendMessage("IncreaseKills", 1);
+                //    Debug.Log("Killed someone");
+                //}             
             }
             catch
             {
@@ -58,58 +79,10 @@ public class Bullet : MonoBehaviour
 
     }
 
-    private void OnCollisionEnter2D(Collision2D collision)
+    [PunRPC]
+    public void AssignParent(int viewID)
     {
-        if (collision.collider.transform.root.CompareTag("Destroyable"))
-        {
-            try
-            {
-                collision.collider.transform.root.GetComponent<IDamageable<float>>().Damage(damage);
-            }
-            catch
-            {
-                // do nothing if object doesn't have damage component
-            }
-        }
+        bulletShooter = PhotonNetwork.GetPhotonView(viewID);
+        Debug.Log("Parent is: " + bulletShooter.ViewID);
     }
 }
-
-//using Photon.Realtime;
-//using UnityEngine;
-
-//public class Bullet : MonoBehaviour
-//{
-//    public Player Owner { get; private set; }
-
-//    public float speed;
-
-//    public GameObject effectPrefab;
-//    public float damage = 25;
-
-//    public void Start()
-//    {
-//        Destroy(gameObject, 3.0f);
-//    }
-
-//    public void OnCollisionEnter(Collision collision)
-//    {
-//        Destroy(gameObject);
-//    }
-
-//    public void InitializeBullet(Player owner, Vector3 originalDirection, float lag)
-//    {
-//        Owner = owner;
-
-//        transform.forward = originalDirection;
-
-//        Rigidbody rigidbody = GetComponent<Rigidbody>();
-//        rigidbody.velocity = originalDirection * speed;
-//        rigidbody.position += rigidbody.velocity * lag;
-//    }
-
-//    private void OnCollisionEnter2D(Collision2D collision)
-//    {
-//        collision.collider.transform.root.GetComponent<IDamageable<float>>().Damage(damage);
-//    }
-//}
-
