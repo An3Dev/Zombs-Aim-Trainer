@@ -41,7 +41,9 @@ namespace Photon.Pun.Demo.Asteroids
         private Dictionary<string, GameObject> roomListEntries;
         private Dictionary<int, GameObject> playerListEntries;
 
-        public string gameSceneName = "DemoAsteroids-GameScene";
+        public string sceneName = "DemoAsteroids-GameScene";
+
+        string playerDefaultUserName = "";
 
         #region UNITY
 
@@ -52,7 +54,9 @@ namespace Photon.Pun.Demo.Asteroids
             cachedRoomList = new Dictionary<string, RoomInfo>();
             roomListEntries = new Dictionary<string, GameObject>();
             
-            PlayerNameInput.text = "Player " + Random.Range(1000, 10000);
+            string randomName =  "Player " + Random.Range(1000, 10000);
+            playerDefaultUserName = PlayerPrefs.GetString("PlayerName", randomName);
+            PlayerNameInput.text = playerDefaultUserName;
         }
 
         #endregion
@@ -240,6 +244,8 @@ namespace Photon.Pun.Demo.Asteroids
             if (!playerName.Equals(""))
             {
                 PhotonNetwork.LocalPlayer.NickName = playerName;
+                playerDefaultUserName = playerName;
+                PlayerPrefs.SetString("PlayerName", playerDefaultUserName);
                 PhotonNetwork.ConnectUsingSettings();
             }
             else
@@ -262,8 +268,7 @@ namespace Photon.Pun.Demo.Asteroids
         {
             PhotonNetwork.CurrentRoom.IsOpen = false;
             PhotonNetwork.CurrentRoom.IsVisible = false;
-
-            PhotonNetwork.LoadLevel(gameSceneName);
+            PhotonNetwork.LoadLevel(sceneName);
         }
 
         #endregion

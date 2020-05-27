@@ -41,7 +41,6 @@ public class Bullet : MonoBehaviour
         Physics2D.queriesHitTriggers = true;
         if (hit.collider != null && hit.collider.transform.root != transform.root)
         {
-            Debug.Log(hit.collider);
             HitSomething(hit.collider.gameObject, hit.point);
         }
         Debug.DrawRay(transform.position, transform.up);
@@ -83,6 +82,5 @@ public class Bullet : MonoBehaviour
     public void AssignParent(int viewID)
     {
         bulletShooter = PhotonNetwork.GetPhotonView(viewID);
-        Debug.Log("Parent is: " + bulletShooter.ViewID);
     }
 }

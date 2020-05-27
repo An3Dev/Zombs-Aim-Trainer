@@ -3,6 +3,8 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using Photon.Pun;
+using Photon.Pun.UtilityScripts;
+
 public class PlayerHealth : MonoBehaviour, IDamageable<float, GameObject>
 {
     private float currentHealth;
@@ -10,10 +12,14 @@ public class PlayerHealth : MonoBehaviour, IDamageable<float, GameObject>
     public float maxHealth = 200;
 
     SpriteRenderer spriteRenderer;
+    PhotonView photonView;
     // Start is called before the first frame update
     void Start()
     {
-        Spawn(0);
+        photonView = GetComponent<PhotonView>();
+        photonView.RPC("StartSpawn", RpcTarget.AllBufferedViaServer, 0.5f);
+
+        //Spawn(0);
     }
 
     // Update is called once per frame
@@ -22,54 +28,92 @@ public class PlayerHealth : MonoBehaviour, IDamageable<float, GameObject>
         
     }
 
-    IEnumerable Spawn(float time)
+    [PunRPC]
+    void StartSpawn(float time)
+    {
+        StartCoroutine("Spawn", time);
+        Debug.Log("Started spawn");
+    }
+
+
+    IEnumerator Spawn(float time)
     {
         yield return new WaitForSeconds(time);
 
+        Debug.Log("Spawn");
         currentHealth = maxHealth;
 
-        transform.GetComponent<Movement>().enabled = true;
+        if (photonView.IsMine)
+        {
+            transform.GetComponent<Movement>().enabled = true;
+        }
 
-        transform.position = new Vector3(UnityEngine.Random.Range(-5, 5), UnityEngine.Random.Range(-5, 5));
-        MakeVisible(true);
+        transform.position = (Vector3.left * 8 + (Vector3.right * PhotonNetwork.CurrentRoom.PlayerCount * PhotonNetwork.LocalPlayer.GetPlayerNumber()));
+        photonView.RPC("MakeVisible", RpcTarget.AllBufferedViaServer, true);
+        StopCoroutine("Spawn");
     }
 
     public void Damage(float damageTaken, GameObject damager)
     {
-        currentHealth -= Mathf.FloorToInt(damageTaken);
-        CheckHealth();
-       
-        damager.SendMessage("IncreaseKills", 1);
-        
+        Debug.Log("Current Health: " + currentHealth + " Max Health: " + maxHealth);
+
+        currentHealth -= damageTaken;
+        Debug.Log("Damage Taken: " + damageTaken);
+        Debug.Log("Current Health: " + currentHealth);
+
+        if (Died())
+        {
+            if(damager.GetComponent<PhotonView>().IsMine)
+            {
+                damager.SendMessage("IncreaseKills", 1);
+            }
+        }
+
     }
 
-    private void CheckHealth()
+    private bool Died()
     {
         if (currentHealth <= 0)
         {
             // is dead = true
             Debug.Log(transform.name + " died");
-            transform.root.GetComponent<SpriteRenderer>().enabled = false;
-            Die();
+            photonView.RPC("Die", RpcTarget.AllBufferedViaServer);
+            return true;
         }
+        return false;
     }
 
+    [PunRPC]
     void MakeVisible(bool makeVisible)
     {
         for(int i = 0; i < transform.childCount; i++)
         {
-            if (transform.GetChild(i).GetComponent<SpriteRenderer>().enabled = !makeVisible)
+            // if the child has a sprite renderer and its state is not what it should be
+            if (transform.GetChild(i).GetComponent<SpriteRenderer>() != null && transform.GetChild(i).GetComponent<SpriteRenderer>().enabled == !makeVisible)
             {
                 transform.GetChild(i).GetComponent<SpriteRenderer>().enabled = makeVisible;
             }
         }
-        transform.GetComponent<SpriteRenderer>().enabled = false;
+        transform.GetComponent<SpriteRenderer>().enabled = makeVisible;
     }
 
+    [PunRPC]
     void Die()
     {
-        MakeVisible(false);
-        transform.GetComponent<Movement>().enabled = false;
-        Spawn(5);
+        photonView.RPC("MakeVisible", RpcTarget.AllBufferedViaServer, false);
+        //MakeVisible(false);
+        if (photonView.IsMine)
+        {
+            try
+            {
+                transform.root.GetComponent<Movement>().enabled = false;
+            }
+            catch
+            {
+                Debug.Log("no Movement");
+            }
+        }
+
+        photonView.RPC("StartSpawn", RpcTarget.AllBufferedViaServer, 3f);
     }
 }

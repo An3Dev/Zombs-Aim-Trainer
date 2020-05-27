@@ -3,7 +3,8 @@ using System.Collections.Generic;
 using UnityEngine;
 using Photon.Pun;
 using Photon.Pun.UtilityScripts;
-
+using UnityEngine.UI;
+using UnityEngine.SceneManagement;
 namespace An3Apps 
 {
     public class GameManager : MonoBehaviour
@@ -35,7 +36,24 @@ namespace An3Apps
             Disable.transform.gameObject.SetActive(setActive);
             Debug.Log("SetActive: " + setActive + " for " + Disable.transform.name);
         }
-    }
 
+        public void OnLeaveMatchPressed(Text text)
+        {
+            if (text.text == "Click Again!")
+            {
+                PhotonNetwork.Disconnect();
+                PhotonNetwork.LeaveLobby();
+                PhotonNetwork.LeaveRoom();
+
+            } else {
+                text.text = "Click Again";
+            }
+        }
+
+        public void OnDisconnectedFromServer()
+        {
+             SceneManager.Instance.LoadScene("Lobby");
+        }
+    }
 }
 
