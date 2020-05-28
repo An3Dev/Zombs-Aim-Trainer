@@ -24831,6 +24831,36 @@ PrefabInstance:
       propertyPath: isTraining
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 7862168791663815582, guid: 64aec48430557714d92026b7425a63ab,
+        type: 3}
+      propertyPath: handsKeybinds
+      value: 9
+      objectReference: {fileID: 0}
+    - target: {fileID: 7862168791663815582, guid: 64aec48430557714d92026b7425a63ab,
+        type: 3}
+      propertyPath: firstSlotKeybind
+      value: 49
+      objectReference: {fileID: 0}
+    - target: {fileID: 7862168791663815582, guid: 64aec48430557714d92026b7425a63ab,
+        type: 3}
+      propertyPath: secondSlotKeybind
+      value: 50
+      objectReference: {fileID: 0}
+    - target: {fileID: 7862168791663815582, guid: 64aec48430557714d92026b7425a63ab,
+        type: 3}
+      propertyPath: thirdSlotKeybind
+      value: 51
+      objectReference: {fileID: 0}
+    - target: {fileID: 7862168791663815582, guid: 64aec48430557714d92026b7425a63ab,
+        type: 3}
+      propertyPath: fourthSlotKeybind
+      value: 52
+      objectReference: {fileID: 0}
+    - target: {fileID: 7862168791663815582, guid: 64aec48430557714d92026b7425a63ab,
+        type: 3}
+      propertyPath: fifthSlotKeybind
+      value: 53
+      objectReference: {fileID: 0}
     - target: {fileID: 7862168791663815583, guid: 64aec48430557714d92026b7425a63ab,
         type: 3}
       propertyPath: m_LocalPosition.x
