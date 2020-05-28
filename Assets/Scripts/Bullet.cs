@@ -54,9 +54,9 @@ public class Bullet : MonoBehaviour
             SpawnTargets.Instance.DestroyedTarget();
         }
 
-        if (collider.transform.root.GetComponent<IDamageable<float, GameObject>>() != null)
+        if (collider.transform.root.GetComponent<IDamageable<float, GameObject>>() != null && bulletShooter.ViewID != collider.transform.root.GetComponent<PhotonView>().ViewID)
         {
-            Debug.Log("damaged");
+            Debug.Log("Collider ViewID: " + collider.transform.root.GetComponent<PhotonView>().ViewID + " Bullet Shooter View ID: " + bulletShooter.ViewID);
             try
             {
                 collider.transform.root.GetComponent<IDamageable<float, GameObject>>().Damage(damage, bulletShooter.gameObject);
@@ -71,11 +71,14 @@ public class Bullet : MonoBehaviour
             {
                 // do nothing if object doesn't have damage component
             }
-        }
-        GameObject effect = Instantiate(effectPrefab, collisionPoint, Quaternion.identity);
-        Destroy(effect, 3);
-        Destroy(gameObject);
 
+            GameObject effect = Instantiate(effectPrefab, collisionPoint, Quaternion.identity);
+            Destroy(effect, 3);
+            Destroy(gameObject);
+            return;
+        }
+
+        Debug.Log("Wall");
     }
 
     [PunRPC]

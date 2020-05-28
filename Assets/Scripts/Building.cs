@@ -35,6 +35,7 @@ public class Building : MonoBehaviour
         {
             tempWallPosition = PositionWall();
 
+            
             RaycastHit2D hit = Physics2D.Linecast(transform.position, tempWallPosition, buildsMask);
 
             if (hit)
@@ -77,10 +78,18 @@ public class Building : MonoBehaviour
             return;
         }
 
-        PhotonNetwork.Instantiate("Wall", tempWallPosition, tempWallRotation);
+        try
+        {
+            PhotonNetwork.Instantiate("Wall", tempWallPosition, tempWallRotation);
 
-        
-        //Instantiate(wallPrefab, tempWallPosition, tempWallRotation);
+        }
+        catch
+        {
+            Instantiate(wallPrefab, tempWallPosition, tempWallRotation);
+
+        }
+
+
         //Debug.Log(tempWallPosition);
     }
 
@@ -105,7 +114,9 @@ public class Building : MonoBehaviour
 
         Vector3 temp = transform.position + direction * 1.15f;
 
+        Physics2D.queriesHitTriggers = false;
         RaycastHit2D hit = Physics2D.Linecast(transform.position, temp, buildsMask);
+        Physics2D.queriesHitTriggers = true;
 
 
         Vector3 finalDirPoint = (hit ? new Vector3(hit.point.x, hit.point.y, 0) : temp);
