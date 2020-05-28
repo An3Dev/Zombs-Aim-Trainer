@@ -13,13 +13,14 @@ public class CameraFollow : MonoBehaviour
     {
         foreach(GameObject player in GameObject.FindGameObjectsWithTag("Player"))
         {
-            if (player.GetComponent<PhotonView>().IsMine)
+            if (player.GetComponent<PhotonView>().IsMine && !An3Apps.GameManager.testMode)
             {
                 target = player.GetComponent<PhotonView>().transform;
                 break;
             }
         }
-        //target = GameObject.FindGameObjectWithTag("Player").transform;
+
+        target = GameObject.FindGameObjectWithTag("Player").transform;
     }
 
     // Update is called once per frame
@@ -29,7 +30,7 @@ public class CameraFollow : MonoBehaviour
         {
             foreach (GameObject player in GameObject.FindGameObjectsWithTag("Player"))
             {
-                if (player.GetComponent<PhotonView>().IsMine)
+                if (player.GetComponent<PhotonView>().IsMine && !An3Apps.GameManager.testMode)
                 {
                     target = player.GetComponent<PhotonView>().transform;
                     break;

@@ -81,14 +81,17 @@ public class Building : MonoBehaviour
         try
         {
             PhotonNetwork.Instantiate("Wall", tempWallPosition, tempWallRotation);
-
         }
         catch
         {
             Instantiate(wallPrefab, tempWallPosition, tempWallRotation);
-
+            Debug.Log("test");
         }
 
+        if (PhotonNetwork.OfflineMode)
+        {
+            Instantiate(wallPrefab, tempWallPosition, tempWallRotation);
+        }
 
         //Debug.Log(tempWallPosition);
     }

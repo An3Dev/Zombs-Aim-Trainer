@@ -43,7 +43,7 @@ public class PlayerHealth : MonoBehaviour, IDamageable<float, GameObject>
         Debug.Log("Spawn");
         currentHealth = maxHealth;
 
-        if (photonView.IsMine)
+        if (photonView.IsMine && !An3Apps.GameManager.testMode)
         {
             transform.GetComponent<Movement>().enabled = true;
         }
@@ -63,7 +63,7 @@ public class PlayerHealth : MonoBehaviour, IDamageable<float, GameObject>
 
         if (Died())
         {
-            if(damager.GetComponent<PhotonView>().IsMine)
+            if(damager.GetComponent<PhotonView>().IsMine && !An3Apps.GameManager.testMode)
             {
                 damager.SendMessage("IncreaseKills", 1);
             }

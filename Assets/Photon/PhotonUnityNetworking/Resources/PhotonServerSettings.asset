@@ -33,17 +33,16 @@ MonoBehaviour:
   RpcList:
   - AddWall
   - AssignParent
+  - ChangeColour
   - ClickRpc
   - DestroyRpc
   - DestroySpaceship
+  - Die
   - EnableGameObject
   - Fire
+  - MakeVisible
   - RespawnSpaceship
   - SpawnBullet
-  - ChangeColour
-  - Spawn
-  - Die
-  - MakeVisible
   - StartSpawn
   DisableAutoOpenWizard: 1
   ShowSettings: 1

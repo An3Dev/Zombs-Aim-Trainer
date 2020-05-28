@@ -10,16 +10,26 @@ namespace An3Apps
     public class GameManager : MonoBehaviour
     {
         public static GameManager Instance;
-        
+
+        public static bool testMode = true;
+
+        public void Awake()
+        {
+            Instance = this;
+        }
+
         // Start is called before the first frame update
         void Start()
         {
-            if (PhotonNetwork.IsConnected)
+            if (testMode)
+            {
+                PhotonNetwork.OfflineMode = true;
+            }
+
+            if (PhotonNetwork.IsConnected && !testMode)
             {
                 PhotonNetwork.Instantiate("Player", Vector3.left * 8 + (Vector3.right * PhotonNetwork.CurrentRoom.PlayerCount * PhotonNetwork.LocalPlayer.GetPlayerNumber()), Quaternion.identity);
             }
-
-            Instance = this;
         }
 
 

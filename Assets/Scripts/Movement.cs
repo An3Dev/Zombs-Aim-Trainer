@@ -32,7 +32,16 @@ public class Movement : MonoBehaviour
 
     GameObject[] wallsList;
 
+    [Space]
+
+    public KeyCode handsKeybinds = KeyCode.Tab, firstSlotKeybind = KeyCode.Alpha1, secondSlotKeybind = KeyCode.Alpha2, thirdSlotKeybind = KeyCode.Alpha3,
+            fourthSlotKeybind = KeyCode.Alpha4, fifthSlotKeybind = KeyCode.Alpha5, reloadKeybind = KeyCode.R;
+
     bool enabledObject = false;
+
+    GameObject[] itemsInInventory;
+    GameObject selectedItemInInventory;
+
     // Start is called before the first frame update
     void Awake()
     {
@@ -44,7 +53,7 @@ public class Movement : MonoBehaviour
 
         mainCamera = Camera.main;
 
-        if(!photonView.IsMine)
+        if(!photonView.IsMine && !An3Apps.GameManager.testMode)
         {
             Destroy(buildingScript);
             Destroy(GetComponent<Movement>());
@@ -54,7 +63,10 @@ public class Movement : MonoBehaviour
         }
     }
 
-
+    void AddItemToInventory(GameObject item)
+    {
+        itemsInInventory.Append<GameObject>(item);
+    }
 
     [PunRPC]
     public void AddWall(GameObject wall)
@@ -80,7 +92,7 @@ public class Movement : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        if (!photonView.IsMine)
+        if (!photonView.IsMine && !An3Apps.GameManager.testMode)
         {
             return;
         }
@@ -140,7 +152,27 @@ public class Movement : MonoBehaviour
             }
             playerState = PlayerState.Weapon;
             buildingScript.StopBuilding();
+        }
 
+        if (Input.GetKeyDown(firstSlotKeybind))
+        {
+            selectedItemInInventory = itemsInInventory[0];
+        }
+        else if (Input.GetKeyDown(secondSlotKeybind))
+        {
+            selectedItemInInventory = itemsInInventory[1];
+        }
+        else if (Input.GetKeyDown(thirdSlotKeybind))
+        {
+            selectedItemInInventory = itemsInInventory[2];
+        }
+        else if (Input.GetKeyDown(fourthSlotKeybind))
+        {
+            selectedItemInInventory = itemsInInventory[3];
+        }
+        else if (Input.GetKeyDown(fifthSlotKeybind))
+        {
+            selectedItemInInventory = itemsInInventory[4];
         }
     }
 
