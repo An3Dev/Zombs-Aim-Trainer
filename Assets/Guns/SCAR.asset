@@ -1,0 +1,33 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f506c961929444247a3f60f766241963, type: 3}
+  m_Name: SCAR
+  m_EditorClassIdentifier: 
+  itemName: Asasult Rifle
+  description: An automatic gun with a moderate fire rate and good damage.
+  topViewSprite: {fileID: 2212421412312922323, guid: 037e7cbca5e351343818ca3bfca97f80,
+    type: 3}
+  sideViewSprite: {fileID: 0}
+  muzzleFlashSprite: {fileID: 0}
+  bulletSprite: {fileID: 7039401936283989537, guid: 037e7cbca5e351343818ca3bfca97f80,
+    type: 3}
+  timeBetweenShots: 0.25
+  damage: 33
+  reloadTime: 5
+  magazineSize: 5
+  bloomAmount: 0
+  bulletSpeed: 50
+  amountOfBullets: 1
+  throwable: 0
+  isHealingItem: 0
+  healingTime: 0
+  healingAmount: 0

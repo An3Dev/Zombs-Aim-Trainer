@@ -34,11 +34,19 @@ public class Bullet : MonoBehaviour
         transform.position += transform.up * speed * Time.deltaTime;
     }
 
+    public void SetStats(float setSpeed, float setDamage)
+    {
+        speed = setSpeed;
+        damage = setDamage;
+    }
+
     public void LateUpdate()
     {
         Physics2D.queriesHitTriggers = false;
-        RaycastHit2D hit = Physics2D.Raycast(transform.position, transform.up, 0.05f);
+        //RaycastHit2D hit = Physics2D.Raycast(transform.position, transform.up, 0.1f);
+        RaycastHit2D hit = Physics2D.CapsuleCast(transform.position, new Vector3(0.3f, 0.3f, 0.3f), CapsuleDirection2D.Vertical, 360, transform.up, 0.2f);
         Physics2D.queriesHitTriggers = true;
+
         if (hit.collider != null && hit.collider.transform.root != transform.root)
         {
             HitSomething(hit.collider.gameObject, hit.point);
@@ -54,7 +62,7 @@ public class Bullet : MonoBehaviour
             SpawnTargets.Instance.DestroyedTarget();
         }
 
-        if (collider.transform.root.GetComponent<IDamageable<float, GameObject>>() != null && bulletShooter.ViewID != collider.transform.root.GetComponent<PhotonView>().ViewID)
+        if (collider.transform.root.GetComponent<IDamageable<float, GameObject>>() != null && (!PhotonNetwork.OfflineMode ? bulletShooter.ViewID != collider.transform.root.GetComponent<PhotonView>().ViewID : bulletShooter.transform.root != collider.transform.root))
         {
             Debug.Log("Collider ViewID: " + collider.transform.root.GetComponent<PhotonView>().ViewID + " Bullet Shooter View ID: " + bulletShooter.ViewID);
             try

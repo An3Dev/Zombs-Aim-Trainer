@@ -27,7 +27,7 @@ Transform:
   m_GameObject: {fileID: 1909279254178507748}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0.28297514, y: 1.482, z: 0}
-  m_LocalScale: {x: 0.2, y: 0.6, z: 1}
+  m_LocalScale: {x: 0.15, y: 0.34, z: 1}
   m_Children:
   - {fileID: 9113675099221510116}
   m_Father: {fileID: 0}
@@ -72,8 +72,9 @@ SpriteRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 1
-  m_Sprite: {fileID: 21300000, guid: 91ad92522080d15478b16de8f98ec9dc, type: 3}
-  m_Color: {r: 0.5377358, g: 0.5377358, b: 0.5377358, a: 1}
+  m_Sprite: {fileID: 7039401936283989537, guid: 037e7cbca5e351343818ca3bfca97f80,
+    type: 3}
+  m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0
   m_DrawMode: 0
@@ -169,7 +170,7 @@ TrailRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
-  m_Time: 0.1
+  m_Time: 0.05
   m_Parameters:
     serializedVersion: 3
     widthMultiplier: 0.3
@@ -178,7 +179,7 @@ TrailRenderer:
       m_Curve:
       - serializedVersion: 3
         time: 0
-        value: 0.39430237
+        value: 0.2243042
         inSlope: 0
         outSlope: 0
         tangentMode: 0
@@ -199,9 +200,9 @@ TrailRenderer:
       m_RotationOrder: 4
     colorGradient:
       serializedVersion: 2
-      key0: {r: 1, g: 1, b: 1, a: 1}
-      key1: {r: 1, g: 1, b: 1, a: 1}
-      key2: {r: 0, g: 0, b: 0, a: 0}
+      key0: {r: 1, g: 1, b: 1, a: 0.654902}
+      key1: {r: 1, g: 1, b: 1, a: 0.6392157}
+      key2: {r: 0, g: 0, b: 0, a: 0.41568628}
       key3: {r: 0, g: 0, b: 0, a: 0}
       key4: {r: 0, g: 0, b: 0, a: 0}
       key5: {r: 0, g: 0, b: 0, a: 0}
@@ -216,8 +217,8 @@ TrailRenderer:
       ctime6: 0
       ctime7: 0
       atime0: 0
-      atime1: 65535
-      atime2: 0
+      atime1: 49922
+      atime2: 62837
       atime3: 0
       atime4: 0
       atime5: 0
@@ -225,7 +226,7 @@ TrailRenderer:
       atime7: 0
       m_Mode: 0
       m_NumColorKeys: 2
-      m_NumAlphaKeys: 2
+      m_NumAlphaKeys: 3
     numCornerVertices: 10
     numCapVertices: 10
     alignment: 0

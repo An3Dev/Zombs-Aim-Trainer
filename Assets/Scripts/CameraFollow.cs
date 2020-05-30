@@ -19,12 +19,18 @@ public class CameraFollow : MonoBehaviour
                 break;
             }
         }
-
-        target = GameObject.FindGameObjectWithTag("Player").transform;
+        try 
+        {
+            target = GameObject.FindGameObjectWithTag("Player").transform;
+        }
+        catch
+        {
+            Debug.Log("Null player");
+        }
     }
 
     // Update is called once per frame
-    void LateUpdate()
+    void Update()
     {
         if (target == null)
         {

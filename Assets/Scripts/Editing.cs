@@ -46,8 +46,6 @@ public class Editing : MonoBehaviour
         leftEditPress = GameObject.Find("LeftEditPress");
         rightEditPress = GameObject.Find("RightEditPress");
 
-        Debug.Log(GameObject.Find("LeftEditPress"));
-
         leftEditPress.SetActive(false);
         rightEditPress.SetActive(false);
         editWall.SetActive(false);
