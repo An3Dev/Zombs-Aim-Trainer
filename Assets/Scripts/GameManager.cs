@@ -24,6 +24,9 @@ namespace An3Apps
             if (testMode)
             {
                 PhotonNetwork.OfflineMode = true;
+            } else if (!PhotonNetwork.IsConnectedAndReady)
+            {
+                SceneManager.Instance.LoadScene("Lobby");
             }
 
             if (PhotonNetwork.IsConnected && !testMode)

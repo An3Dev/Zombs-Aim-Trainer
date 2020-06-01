@@ -37,7 +37,7 @@ namespace Photon.Voice.Unity
         
         private LoadBalancingTransport client;
         [SerializeField]
-        private bool enableSupportLogger;
+        private bool enableSupportLogger = false;
 
         private SupportLogger supportLoggerComponent;
 

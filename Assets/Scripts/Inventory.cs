@@ -12,17 +12,10 @@ public class Inventory : MonoBehaviour
 
     public Item P90, Sniper, Scar, Shotgun;
 
-    public void AddItem(Item item)
-    {
-        itemsInInventory.Add(item);
 
-        Debug.Log("Added Item");
-        selectedItem = item;
-        Debug.Log(item.name);
-    }
 
     // Start is called before the first frame update
-    void Start()
+    void Awake()
     {
         AddItem(P90);
         AddItem(Sniper);
@@ -30,6 +23,13 @@ public class Inventory : MonoBehaviour
         AddItem(Shotgun);
 
         SelectItem(0);
+    }
+
+    public void AddItem(Item item)
+    {
+        itemsInInventory.Add(item);
+
+        Debug.Log("Added Item");
     }
 
     public Item SelectItem(int index)
@@ -45,9 +45,4 @@ public class Inventory : MonoBehaviour
         return selectedItem;
     }
 
-    // Update is called once per frame
-    void Update()
-    {
-        
-    }
 }

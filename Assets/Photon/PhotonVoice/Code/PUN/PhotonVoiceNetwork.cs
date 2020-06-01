@@ -262,7 +262,7 @@ namespace Photon.Voice.PUN
             {
                 if (this.Logger.IsWarningEnabled)
                 {
-                    this.Logger.LogWarning("UserData ({0}) does not contain PhotonViewId. Remote voice {1}/{2} not linked",
+                    this.Logger.LogWarning("UserData ({0}) does not contain PhotonViewId. Remote voice {1}/{2} not linked. Do you have a Recorder not used with a PhotonVoiceView? is this expected?",
                         userData == null ? "null" : userData.ToString(), playerId, voiceId);
                 }
                 return null;
@@ -290,11 +290,7 @@ namespace Photon.Voice.PUN
             }
             if (!photonVoiceView.IsSpeaker)
             {
-                if (this.Logger.IsWarningEnabled)
-                {
-                    this.Logger.LogWarning("No Speaker found for the PhotonView with ID {0}. Remote voice {1}/{2} not linked.", userData, playerId, voiceId);
-                }
-                return null;
+                photonVoiceView.SetupSpeakerInUse();
             }
             return photonVoiceView.SpeakerInUse;
         }
@@ -430,31 +426,55 @@ namespace Photon.Voice.PUN
             }
         }
 
-        internal void CheckLateLinking(PhotonVoiceView photonVoiceView, int viewId)
+        internal void CheckLateLinking(Speaker speaker, int viewId)
         {
-            if (this.Client.InRoom && photonVoiceView != null && viewId > 0)
+            if (!speaker || speaker == null)
             {
-                for (int i = 0; i < this.cachedRemoteVoices.Count; i++)
+                if (this.Logger.IsWarningEnabled)
                 {
-                    RemoteVoiceLink remoteVoice = this.cachedRemoteVoices[i];
-                    if (remoteVoice.Info.UserData is int)
+                    this.Logger.LogWarning("Cannot check late linking for null Speaker");
+                }
+                return;
+            }
+            if (viewId <= 0)
+            {
+                if (this.Logger.IsWarningEnabled)
+                {
+                    this.Logger.LogWarning("Cannot check late linking for ViewID = {0} (<= 0)", viewId);
+                }
+                return;
+            }
+            if (!this.Client.InRoom)
+            {
+                if (this.Logger.IsWarningEnabled)
+                {
+                    this.Logger.LogWarning("Cannot check late linking while not joined to a voice room, client state: {0}", System.Enum.GetName(typeof(ClientState), this.ClientState));
+                }
+                return;
+            }
+            for (int i = 0; i < this.cachedRemoteVoices.Count; i++)
+            {
+                RemoteVoiceLink remoteVoice = this.cachedRemoteVoices[i];
+                if (remoteVoice.Info.UserData is int)
+                {
+                    int photonViewId = (int)remoteVoice.Info.UserData;
+                    if (viewId == photonViewId)
                     {
-                        int photonViewId = (int)remoteVoice.Info.UserData;
-                        if (viewId == photonViewId)
+                        if (this.Logger.IsInfoEnabled)
                         {
-                            Speaker speaker = photonVoiceView.SpeakerInUse;
-                            if (this.Logger.IsInfoEnabled)
-                            {
-                                this.Logger.LogInfo("Speaker 'late-linking' for the PhotonView with ID {0} with remote voice {1}/{2}.", viewId, remoteVoice.PlayerId, remoteVoice.VoiceId);
-                            }
-                            this.LinkSpeaker(speaker, remoteVoice);
-                            break;
+                            this.Logger.LogInfo("Speaker 'late-linking' for the PhotonView with ID {0} with remote voice {1}/{2}.", viewId, remoteVoice.PlayerId, remoteVoice.VoiceId);
                         }
-                    } 
-                    else if (this.Logger.IsErrorEnabled)
+                        this.LinkSpeaker(speaker, remoteVoice);
+                        break;
+                    }
+                }
+                else if (this.Logger.IsWarningEnabled)
+                {
+                    this.Logger.LogWarning("VoiceInfo.UserData should be int/ViewId, received: {0}, do you have a Recorder not used with a PhotonVoiceView? is this expected?", 
+                        remoteVoice.Info.UserData == null ? "null" : string.Format("{0} ({1})", remoteVoice.Info.UserData, remoteVoice.Info.UserData.GetType()));
+                    if (remoteVoice.PlayerId == viewId / PhotonNetwork.MAX_VIEW_IDS)
                     {
-                        this.Logger.LogError("Unexpected: VoiceInfo.UserData should be int/ViewId, received: {0}", 
-                            remoteVoice.Info.UserData == null ? "null" : string.Format("{0} ({1})", remoteVoice.Info.UserData, remoteVoice.Info.UserData.GetType()));
+                        this.Logger.LogWarning("Player with ActorNumber {0} has started recording (voice # {1}) too early without setting a ViewId maybe? (before PhotonVoiceView setup)", remoteVoice.PlayerId, remoteVoice.VoiceId);
                     }
                 }
             }

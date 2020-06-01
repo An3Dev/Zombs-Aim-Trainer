@@ -110,6 +110,16 @@ namespace Photon.Voice.Unity
                         framePool.Release(frame);
                     }
                 }
+                // loop detection (pcmsetpositioncallback not called when clip loops)
+                if (this.source.isPlaying)
+                {
+                    if (this.source.timeSamples < sourceTimeSamplesPrev)
+                    {
+                        playLoopCount++;
+                    }
+                    sourceTimeSamplesPrev = this.source.timeSamples;
+                }
+
                 var playSamplesPos = this.playSamplePos;
                 var lagSamples = this.clipWriteSamplePos - playSamplesPos;
                 if (lagSamples > targetPlayDelaySamples + maxDevPlayDelaySamples)
@@ -118,7 +128,7 @@ namespace Photon.Voice.Unity
                     this.playSamplePos = this.clipWriteSamplePos - targetPlayDelaySamples;
                     if (this.debugInfo)
                     {
-                        this.logger.LogWarning("{0} UnityAudioOut overrun {1} {2} {3} {4}", this.logPrefix, targetPlayDelaySamples - maxDevPlayDelaySamples, targetPlayDelaySamples + maxDevPlayDelaySamples, lagSamples, this.clipWriteSamplePos, playSamplesPos);
+                        this.logger.LogWarning("{0} UnityAudioOut overrun {1} {2} {3} {4} {5}", this.logPrefix, targetPlayDelaySamples - maxDevPlayDelaySamples, targetPlayDelaySamples + maxDevPlayDelaySamples, lagSamples, this.clipWriteSamplePos, playSamplesPos);
                     }
                 }
                 else if (lagSamples < targetPlayDelaySamples - maxDevPlayDelaySamples)
@@ -129,7 +139,7 @@ namespace Photon.Voice.Unity
                         this.source.Pause();
                         if (this.debugInfo)
                         {
-                            this.logger.LogWarning("{0} UnityAudioOut underrun {1} {2} {3} {4}", this.logPrefix, targetPlayDelaySamples - maxDevPlayDelaySamples, targetPlayDelaySamples + maxDevPlayDelaySamples, lagSamples, this.clipWriteSamplePos, playSamplesPos);
+                            this.logger.LogWarning("{0} UnityAudioOut underrun {1} {2} {3} {4} {5}", this.logPrefix, targetPlayDelaySamples - maxDevPlayDelaySamples, targetPlayDelaySamples + maxDevPlayDelaySamples, lagSamples, this.clipWriteSamplePos, playSamplesPos);
                         }
                     }
                 }
@@ -138,15 +148,6 @@ namespace Photon.Voice.Unity
                     this.source.UnPause();
                 }
 
-                // loop detection (pcmsetpositioncallback not called when clip loops)
-                if (this.source.isPlaying)
-                {
-                    if (this.source.timeSamples < sourceTimeSamplesPrev)
-                    {
-                        playLoopCount++;
-                    }
-                    sourceTimeSamplesPrev = this.source.timeSamples;
-                }
             }
         }
         // may be called on any thread

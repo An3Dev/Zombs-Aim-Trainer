@@ -20,6 +20,7 @@ public class Item : ScriptableObject
     public float bulletSpeed;
 
     public int amountOfBullets;
+    public float timeBeforeDestroy;
 
     public bool throwable;
 

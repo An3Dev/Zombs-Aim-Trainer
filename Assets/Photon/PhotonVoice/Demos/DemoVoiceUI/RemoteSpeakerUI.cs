@@ -15,33 +15,41 @@ namespace Photon.Voice.DemoVoiceUI
         [SerializeField]
         private Image remoteIsTalking;
 
-        private Speaker speaker;
-
         private void Start()
         {
             this.nameText = this.GetComponentInChildren<Text>();
-            this.speaker = this.GetComponent<Speaker>();
-            string nick = this.speaker.name;
-            if (this.speaker.Actor != null)
-            {
-                nick = this.speaker.Actor.NickName;
-                if (string.IsNullOrEmpty(nick))
-                {
-                    nick = string.Concat("user ", this.speaker.Actor.ActorNumber);
-                }
-            }
-            this.nameText.text = nick;
         }
 
         void Update()
         {
-            object mutedValue;
-            if (this.speaker.Actor != null && this.speaker.Actor.CustomProperties.TryGetValue(DemoVoiceUI.MutePropKey, out mutedValue))
+            Speaker speaker = this.GetComponent<Speaker>();
+            if (speaker.Actor != null)
             {
-                this.remoteIsMuting.enabled = (bool)mutedValue;
+                string nick = speaker.Actor.NickName;
+                if (string.IsNullOrEmpty(nick))
+                {
+                    nick = string.Concat("user ", speaker.Actor.ActorNumber);
+                }
+                this.nameText.text = nick;
+
+
+                if (this.remoteIsMuting != null)
+                {
+                    bool? muted = speaker.Actor.CustomProperties[DemoVoiceUI.MutePropKey] as bool?;
+                    if (muted != null) this.remoteIsMuting.enabled = (bool)muted;
+                }
+
+                // TODO: It would be nice, if we could show if a user is actually talking right now (Voice Detection)
+                if (this.remoteIsTalking != null)
+                {
+                    this.remoteIsTalking.enabled = speaker.IsPlaying;
+                }
             }
-            // TODO: It would be nice, if we could show if a user is actually talking right now (Voice Detection)
-            this.remoteIsTalking.enabled = this.speaker.IsPlaying;
+            else
+            {
+                this.nameText.text = speaker.name;
+            }
+            //transmitToggle.isOn = speaker.IsPlaying;
         }
     }
 }

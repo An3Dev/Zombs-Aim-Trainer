@@ -10,23 +10,24 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: f506c961929444247a3f60f766241963, type: 3}
-  m_Name: Sniper
+  m_Name: Shotgun
   m_EditorClassIdentifier: 
-  itemName: Sniper
-  description: A long range weapon with high damage and no bloom.
-  topViewSprite: {fileID: 6813005722775649389, guid: 037e7cbca5e351343818ca3bfca97f80,
+  itemName: Shotgun
+  description: A powerful gun that shoots multiple bullets
+  topViewSprite: {fileID: 3418787926514234227, guid: 037e7cbca5e351343818ca3bfca97f80,
     type: 3}
   sideViewSprite: {fileID: 0}
   muzzleFlashSprite: {fileID: 0}
-  bulletSprite: {fileID: 8030500598090849251, guid: 037e7cbca5e351343818ca3bfca97f80,
+  bulletSprite: {fileID: 4031767060266733247, guid: 037e7cbca5e351343818ca3bfca97f80,
     type: 3}
   timeBetweenShots: 0.8
-  damage: 80
+  damage: 20
   reloadTime: 5
   magazineSize: 5
   bloomAmount: 0
-  bulletSpeed: 50
-  amountOfBullets: 1
+  bulletSpeed: 25
+  amountOfBullets: 5
+  timeBeforeDestroy: 0.3
   throwable: 0
   isHealingItem: 0
   healingTime: 0

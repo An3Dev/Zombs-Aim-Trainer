@@ -34,10 +34,12 @@ public class Bullet : MonoBehaviour
         transform.position += transform.up * speed * Time.deltaTime;
     }
 
-    public void SetStats(float setSpeed, float setDamage)
+    public void SetStats(float setSpeed, float setDamage, float timeBeforeDestroyed)
     {
         speed = setSpeed;
         damage = setDamage;
+
+        //Destroy(gameObject, timeBeforeDestroyed);
     }
 
     public void LateUpdate()
@@ -54,6 +56,11 @@ public class Bullet : MonoBehaviour
         Debug.DrawRay(transform.position, transform.up);
     }
 
+    public void OnDestroy()
+    {
+        Debug.Log("Destroyed");
+    }
+
     void HitSomething(GameObject collider, Vector2 collisionPoint)
     {
         if (collider.CompareTag("Target"))
@@ -64,7 +71,7 @@ public class Bullet : MonoBehaviour
 
         if (collider.transform.root.GetComponent<IDamageable<float, GameObject>>() != null && (!PhotonNetwork.OfflineMode ? bulletShooter.ViewID != collider.transform.root.GetComponent<PhotonView>().ViewID : bulletShooter.transform.root != collider.transform.root))
         {
-            Debug.Log("Collider ViewID: " + collider.transform.root.GetComponent<PhotonView>().ViewID + " Bullet Shooter View ID: " + bulletShooter.ViewID);
+            //Debug.Log("Collider ViewID: " + collider.transform.root.GetComponent<PhotonView>().ViewID + " Bullet Shooter View ID: " + bulletShooter.ViewID);
             try
             {
                 collider.transform.root.GetComponent<IDamageable<float, GameObject>>().Damage(damage, bulletShooter.gameObject);
@@ -85,8 +92,6 @@ public class Bullet : MonoBehaviour
             Destroy(gameObject);
             return;
         }
-
-        Debug.Log("Wall");
     }
 
     [PunRPC]

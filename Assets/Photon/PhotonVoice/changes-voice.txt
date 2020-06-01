@@ -1,5 +1,31 @@
 Photon Voice 2 Change Log
 
+v2.17 (May 29th, 2020)
+   PUN2: v2.18.1 (624dae8c)
+   PhotonVoiceApi: revision 5558
+   FIXED: [PhotonVoiceApi] macOS Photon mic enumerator to support all mic names strings & skip virtual/'ghost' devices.
+   FIXED: [PhotonVoiceApi] UnityAudioOut clip play loop detection which was triggering "overrun" warning every ~5 seconds or so.
+   ADDED: [PhotonVoiceView] warnings during setup about unexpected AudioSource settings.
+   ADDED: [PhotonVoiceView] warnings during setup about Recorder settings.
+   CHANGED: [PhotonVoiceView] log message level WARNING -> DEBUG in Setup when already setup.
+   CHANGED: [PhotonVoiceView] refactored for a better clear setup of Recorder & Speaker.
+   ADDED: [PhotonVoiceView] back Awake and attempt to init there.
+   ADDED: [PhotonVoiceNetwork] attempt to setup PhotonVoiceView when receiving voice info.
+   CHANGED: [PhotonVoiceView] using GetComponent instead of GetComponentInChildren for AudioSource as it is on the same GameObject as the Speaker.
+   CHANGED: [PhotonVoiceNetwork.CheckLateLinking] refactored to accept Speaker directly.
+   CHANGED: [PhotonVoiceNetwork.CheckLateLinking] 'UserData not ViewId': error log is now warning and better message.
+   ADDED: [PhotonVoiceNetwork.CheckLateLinking] warning when received UserData does not match ViewId but ActorNumber match.
+   FIXED: [DemoVoiceUI scene] proper UI update of speaker objects by adjusting previous RemoteSpeakerUI.cs changes.
+   ADDED: [PunVoiceDemo] manual instantiation's custom local/remote prefabs.
+   CHANGED: [PunVoiceDemo] CharacterInstantiation PUN demo script updated to be in sync w/ PUN 2's new OnJoinedInstantiate.
+   FIXED: [PhotonVoiceView] correct way to tell if PhotonView is valid or not yet.
+   FIXED: 2 CS0649 warnings: Field is never assigned by setting default value to false.
+   FIXED: inconsistent EoL warning in on (re)complie/import.
+   FIXED: [Editor only] minor, removing wrong useless code in RecorderEditor.RefreshPhotonMicrophoneDevices.
+   FIXED: [Editor only] NullReferenceException when Photon mic name is null.
+   CHANGED: [Editor only] minor, RecorderEditor.SetEnumIndex method is used in iOS Editor only.
+   CHANGED: minor, consistency, usage of "this." enforced.
+
 v2.16.1 (April 30th, 2020)
    PUN2: v2.18.1 (624dae8c)
    PhotonVoiceApi: revision 5464

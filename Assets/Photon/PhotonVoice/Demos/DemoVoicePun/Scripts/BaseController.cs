@@ -97,10 +97,10 @@ namespace ExitGames.Demos.DemoPunVoice
             this.h = CrossPlatformInputManager.GetAxisRaw("Horizontal");
             this.v = CrossPlatformInputManager.GetAxisRaw("Vertical");
 #if MOBILE_INPUT
-            if (Mathf.Abs(h) < 0.5f) { h = 0f; }
-            else { h = Mathf.Sign(h); }
-            if (Mathf.Abs(v) < 0.5f) { v = 0f; }
-            else { v = Mathf.Sign(v); }
+            if (Mathf.Abs(this.h) < 0.5f) { this.h = 0f; }
+            else { this.h = Mathf.Sign(this.h); }
+            if (Mathf.Abs(this.v) < 0.5f) { this.v = 0f; }
+            else { this.v = Mathf.Sign(this.v); }
 #endif  
             // send input to the animator
             this.UpdateAnimator(this.h, this.v);

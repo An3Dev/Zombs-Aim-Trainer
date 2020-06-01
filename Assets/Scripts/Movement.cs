@@ -6,7 +6,6 @@ using System.Linq;
 using TMPro;
 using System;
 using Photon.Realtime;
-using UnityEditorInternal;
 
 public class Movement : MonoBehaviour
 {
@@ -63,7 +62,7 @@ public class Movement : MonoBehaviour
         if(!photonView.IsMine && !An3Apps.GameManager.testMode)
         {
             //Destroy(buildingScript);
-            Destroy(GetComponent<Movement>());
+            //Destroy(GetComponent<Movement>());
             //Destroy(editingScript);
             //buildingScript.enabled = false;
             //editingScript.GetComponent<Editing>().enabled = false;
@@ -81,6 +80,8 @@ public class Movement : MonoBehaviour
 
         gameManagerPhotonView = GameObject.Find("GameManager").GetComponent<PhotonView>();
         inventory = GetComponentInChildren<Inventory>();
+
+       
     }
 
 
@@ -93,6 +94,10 @@ public class Movement : MonoBehaviour
         wallPreview = GameObject.Find("WallPreview");
         wallPreview.SetActive(false);
         killsText = GameObject.Find("KillsText").GetComponent<TextMeshProUGUI>();
+
+        currentItem = inventory.SelectItem(0);
+        SwitchToWeapon(currentItem.name);
+        photonView.RPC("SwitchToWeapon", RpcTarget.AllBuffered, currentItem.name);
     }
     // Update is called once per frame
     void Update()
@@ -117,10 +122,9 @@ public class Movement : MonoBehaviour
         {
             if (playerState == PlayerState.Weapon)
             {
-                //activeShootScript.TryShooting();
-                TryShooting();
-                //buildingScript.StopBuilding();
                 StopBuilding();
+                TryShooting();
+                             
             }
             else if (playerState == PlayerState.Building)
             {
@@ -264,47 +268,74 @@ public class Movement : MonoBehaviour
 
         if (Input.GetKeyDown(firstSlotKeybind)) {
             currentItem = inventory.SelectItem(0);
-            SwitchtoWeapon(currentItem);
-            photonView.RPC("SwitchToWeapon", RpcTarget.AllBuffered, currentItem);
+            //SwitchToWeapon(currentItem.name);
+            photonView.RPC("SwitchToWeapon", RpcTarget.AllBuffered, currentItem.name);
         }
         else if (Input.GetKeyDown(secondSlotKeybind))
         {
             currentItem = inventory.SelectItem(1);
 
-            SwitchtoWeapon(currentItem);
+            //SwitchToWeapon(currentItem.name);
+            photonView.RPC("SwitchToWeapon", RpcTarget.AllBuffered, currentItem.name);
+
         }
         else if (Input.GetKeyDown(thirdSlotKeybind))
         {
             currentItem = inventory.SelectItem(2);
 
-            SwitchtoWeapon(currentItem);
+            //SwitchToWeapon(currentItem.name);
+            photonView.RPC("SwitchToWeapon", RpcTarget.AllBuffered, currentItem.name);
+
         }
         else if (Input.GetKeyDown(fourthSlotKeybind))
         {
             currentItem = inventory.SelectItem(3);
 
-            SwitchtoWeapon(currentItem);
+            //SwitchToWeapon(currentItem.name);
+            photonView.RPC("SwitchToWeapon", RpcTarget.AllBuffered, currentItem.name);
+
         }
         else if (Input.GetKeyDown(fifthSlotKeybind))
         {
             currentItem = inventory.SelectItem(4);
 
-            SwitchtoWeapon(currentItem);
+            //SwitchToWeapon(currentItem.name);
+            photonView.RPC("SwitchToWeapon", RpcTarget.AllBuffered, currentItem.name);
+
         }
     }
 
+    //[PunRPC]
+    //void SwitchtoWeapon(Item currentItem)
+    //{
+    //    SwitchStates(PlayerState.Weapon);
+
+    //    Debug.Log(currentItem);
+
+    //    // set stats.
+    //    SetStats(currentItem);
+
+    //    // Show item.
+    //    gunRenderer.sprite = currentItem.topViewSprite;
+
+    //    // reset time since last shot;
+    //    lastTimeShot = Time.timeSinceLevelLoad - timeBetweenShots;
+    //}
+
     [PunRPC]
-    void SwitchtoWeapon(Item currentItem)
+    void SwitchToWeapon(string currentItem)
     {
         SwitchStates(PlayerState.Weapon);
 
         Debug.Log(currentItem);
 
+        Item thisItem = Resources.Load("Guns/" + currentItem) as Item;
+
         // set stats.
-        SetStats(currentItem);
+        SetStats(thisItem);
 
         // Show item.
-        gunRenderer.sprite = currentItem.topViewSprite;
+        gunRenderer.sprite = thisItem.topViewSprite;
 
         // reset time since last shot;
         lastTimeShot = Time.timeSinceLevelLoad - timeBetweenShots;
@@ -321,24 +352,40 @@ public class Movement : MonoBehaviour
 
     void SwitchStates(PlayerState stateToChangeTo)
     {
+        playerState = stateToChangeTo;
+
         if (stateToChangeTo == PlayerState.Building)
         {
-            CancelEdit();
             gunRenderer.sprite = buildingSprite;
 
+        }
+        else if (stateToChangeTo == PlayerState.Editing)
+        {
+            gunRenderer.sprite = editingSprite;
+        }
+
+        if (!photonView.IsMine)
+        {
+            return;
+        }
+        if (stateToChangeTo == PlayerState.Building)
+        {
+            gunRenderer.sprite = buildingSprite;
+            CancelEdit();        
             StartBuilding();
         }
         else if (stateToChangeTo == PlayerState.Editing)
         {
-            StopBuilding();
             gunRenderer.sprite = editingSprite;
+            StopBuilding();
+            
         } else if (stateToChangeTo == PlayerState.Weapon)
         {
             StopBuilding();
             CancelEdit();
         }
 
-        playerState = stateToChangeTo;
+        
     }
 
     #region movement code
@@ -577,21 +624,27 @@ public class Movement : MonoBehaviour
 
     public void TryShooting()
     {
-        if (Time.timeSinceLevelLoad - lastTimeShot >= timeBetweenShots)
+        if (Time.timeSinceLevelLoad - lastTimeShot > timeBetweenShots)
         {
             Vector3 mouseWorldPos = mainCamera.ScreenToWorldPoint(Input.mousePosition);
             mouseWorldPos = new Vector3(mouseWorldPos.x, mouseWorldPos.y, 0);
             Vector3 direction = (mouseWorldPos - transform.root.position).normalized;
 
-            SpawnBullet(bulletOrigin.position, direction);
-            try
+
+            if (PhotonNetwork.OfflineMode)
             {
-                photonView.RPC("SpawnBullet", RpcTarget.AllBuffered, bulletOrigin.position, direction);
-            }
-            catch
+                SpawnBullet(bulletOrigin.position, direction, bulletSpeed, bulletDamage, currentItem.timeBeforeDestroy);
+            } else
             {
-                Debug.Log("Error spawning bullet online");
-            }
+                try
+                {
+                    photonView.RPC("SpawnBullet", RpcTarget.AllBufferedViaServer, bulletOrigin.position, direction, bulletSpeed, bulletDamage, currentItem.timeBeforeDestroy);
+                }
+                catch
+                {
+                    Debug.Log("Spawning bullet error");
+                }
+            }        
 
             lastTimeShot = Time.timeSinceLevelLoad;
             timesShot++;
@@ -600,14 +653,16 @@ public class Movement : MonoBehaviour
     }
 
     [PunRPC]
-    public void SpawnBullet(Vector3 location, Vector3 direction)
+    public void SpawnBullet(Vector3 location, Vector3 direction, float speedOfBullet, float damageOfBullet, float timeBeforeDestroy)
     {
         //Debug.Log("Info: " + info);
         GameObject bullet = Instantiate(bulletPrefab, location, Quaternion.identity);
-        bullet.GetComponent<Bullet>().SetStats(bulletSpeed, bulletDamage);
+        //Debug.Log("Bullet script: " + bullet.GetComponent<Bullet>());
+        bullet.GetComponent<Bullet>().SetStats(speedOfBullet, damageOfBullet, timeBeforeDestroy);
         bullet.GetComponent<SpriteRenderer>().sprite = bulletSprite;
         bullet.transform.up = direction;
         bullet.SendMessage("AssignParent", photonView.ViewID);
+        //Debug.Log("Spawned bullet");
     }
     #endregion Shooting code
 

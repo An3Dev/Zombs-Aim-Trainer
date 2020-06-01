@@ -137,7 +137,7 @@ AudioSource:
       tangentMode: 0
     m_PreInfinity: 2
     m_PostInfinity: 2
-    m_RotationOrder: 0
+    m_RotationOrder: 4
   spreadCustomCurve:
     serializedVersion: 2
     m_Curve:
@@ -161,7 +161,7 @@ AudioSource:
       tangentMode: 0
     m_PreInfinity: 2
     m_PostInfinity: 2
-    m_RotationOrder: 0
+    m_RotationOrder: 4
 --- !u!114 &114031284408430264
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -200,9 +200,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: dd7fea91fe63f4e1b884ef1e16a975c3, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  logLevel: 1
-  playbackOnlyWhenEnabled: 0
   PlayDelayMs: 200
+  DebugInfo: 0
 --- !u!114 &114367579022909686
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -304,6 +303,7 @@ MonoBehaviour:
   nameText: {fileID: 114433101706271038}
   remoteIsMuting: {fileID: 114367579022909686}
   remoteIsTalking: {fileID: 114031284408430264}
+  customUserObjectText: {fileID: 0}
 --- !u!222 &222359588339494658
 CanvasRenderer:
   m_ObjectHideFlags: 1

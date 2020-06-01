@@ -14,8 +14,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   AppSettings:
     AppIdRealtime: d0e9b9a0-dc1b-43b7-a186-f7d54e0b665a
-    AppIdChat: 
-    AppIdVoice: bddf6461-52b5-4100-a9e9-3ff5b10eed41
+    AppIdChat: bddf6461-52b5-4100-a9e9-3ff5b10eed41
+    AppIdVoice: 
     AppVersion: 
     UseNameServer: 1
     FixedRegion: 
@@ -45,6 +45,7 @@ MonoBehaviour:
   - SpawnBullet
   - StartSpawn
   - SwitchtoWeapon
+  - SwitchToWeapon
   DisableAutoOpenWizard: 1
   ShowSettings: 1
   DevRegionSetOnce: 1

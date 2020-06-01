@@ -1004,7 +1004,7 @@ namespace Photon.Voice.Unity
                 this.audioSessionParameters.CategoryOptions = options;
                 if (this.Logger.IsInfoEnabled)
                 {
-                    this.Logger.LogInfo("Changing iOS audioSessionParameters = {0}", audioSessionParameters);
+                    this.Logger.LogInfo("Changing iOS audioSessionParameters = {0}", this.audioSessionParameters);
                 }
                 if (this.IsRecording)
                 {

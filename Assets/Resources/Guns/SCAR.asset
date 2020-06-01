@@ -27,6 +27,7 @@ MonoBehaviour:
   bloomAmount: 0
   bulletSpeed: 50
   amountOfBullets: 1
+  timeBeforeDestroy: 0.8
   throwable: 0
   isHealingItem: 0
   healingTime: 0

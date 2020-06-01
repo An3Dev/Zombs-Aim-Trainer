@@ -16,7 +16,6 @@ namespace Photon.Voice.PUN
     using Pun;
     using UnityEngine;
     using Unity;
-    using System.Collections;
 
     /// <summary>
     /// Component that should be attached to a networked PUN prefab that has <see cref="PhotonView"/>. 
@@ -39,7 +38,7 @@ namespace Photon.Voice.PUN
         private Speaker speakerInUse;
 
         private bool onEnableCalledOnce;
-
+        
         #endregion
 
         #region Public Fields
@@ -58,20 +57,27 @@ namespace Photon.Voice.PUN
         /// <summary> The Recorder component currently used by this PhotonVoiceView </summary>
         public Recorder RecorderInUse
         {
-            get { return this.recorderInUse; }
+            get
+            {
+                return this.recorderInUse;
+            }
             set
             {
-                if (this.photonView.IsMine)
+                if (value != this.recorderInUse)
                 {
-                    if (this.recorderInUse != value || !this.IsRecorder)
-                    {
-                        this.recorderInUse = value;
-                        this.IsRecorder = this.SetupRecorder(this.recorderInUse);
-                    }
+                    this.recorderInUse = value;
+                    this.IsRecorder = false;
                 }
-                else if (this.Logger.IsWarningEnabled)
+                if (this.RequiresRecorder)
                 {
-                    this.Logger.LogWarning("No need to set Recorder as the PhotonView does not belong to local player");
+                    this.SetupRecorderInUse();
+                }
+                else if (this.IsPhotonViewReady)
+                {
+                    if (this.Logger.IsWarningEnabled)
+                    {
+                        this.Logger.LogWarning("No need to set Recorder as the PhotonView does not belong to local player");
+                    }
                 }
             }
         }
@@ -79,37 +85,69 @@ namespace Photon.Voice.PUN
         /// <summary> The Speaker component currently used by this PhotonVoiceView </summary>
         public Speaker SpeakerInUse
         {
-            get { return this.speakerInUse; }
+            get
+            {
+                return this.speakerInUse;
+            }
             set
             {
-                if (this.SetupDebugSpeaker || !this.photonView.IsMine)
+                if (this.speakerInUse != value)
                 {
-                    if (this.speakerInUse != value || !this.IsSpeaker)
+                    this.speakerInUse = value;
+                    this.IsSpeaker = false;
+                }
+                if (this.RequiresSpeaker)
+                {
+                    this.SetupSpeakerInUse();
+                }
+                else if (this.IsPhotonViewReady)
+                {
+                    if (this.Logger.IsWarningEnabled)
                     {
-                        this.speakerInUse = value;
-                        this.IsSpeaker = this.SetupSpeaker(this.speakerInUse);
+                        this.Logger.LogWarning("Speaker not set because the PhotonView does not belong to a remote player or SetupDebugSpeaker is disabled");
                     }
-                } else if (this.Logger.IsWarningEnabled)
-                {
-                    this.Logger.LogWarning("Speaker not set because the PhotonView does not belong to a remote player or SetupDebugSpeaker is disabled");
                 }
             }
         }
+
         /// <summary> If true, this PhotonVoiceView is setup and ready to be used </summary>
-        public bool IsSetup { get; protected set; }
+        public bool IsSetup
+        {
+            get { return this.IsPhotonViewReady && (!this.RequiresRecorder || this.IsRecorder) && (!this.RequiresSpeaker || this.IsSpeaker); }
+        }
         /// <summary> If true, this PhotonVoiceView has a Speaker setup for playback of received audio frames from remote audio source </summary>
-        public bool IsSpeaker { get; protected set; }
+        public bool IsSpeaker { get; private set; }
         /// <summary> If true, this PhotonVoiceView has a Speaker that is currently playing received audio frames from remote audio source </summary>
         public bool IsSpeaking
         {
             get { return this.IsSpeaker && this.SpeakerInUse.IsPlaying; }
         }
         /// <summary> If true, this PhotonVoiceView has a Recorder setup for transmission of audio stream from local audio source </summary>
-        public bool IsRecorder { get; protected set; }
+        public bool IsRecorder { get; private set; }
         /// <summary> If true, this PhotonVoiceView has a Recorder that is currently transmitting audio stream from local audio source </summary>
         public bool IsRecording
         {
             get { return this.IsRecorder && this.RecorderInUse.IsCurrentlyTransmitting; }
+        }
+        /// <summary> If true, the SpeakerInUse is linked to the remote voice stream </summary>
+        public bool IsSpeakerLinked
+        {
+            get { return this.IsSpeaker && this.SpeakerInUse.IsLinked; }
+        }
+        /// <summary> If true, the PhotonView attached to the same GameObject has a valid ViewID > 0 </summary>
+        public bool IsPhotonViewReady
+        {
+            get { return this.photonView && this.photonView != null && this.photonView.ViewID > 0; }
+        }
+        
+        internal bool RequiresSpeaker
+        {
+            get { return this.SetupDebugSpeaker || this.IsPhotonViewReady && !this.photonView.IsMine; }
+        }
+
+        internal bool RequiresRecorder
+        {
+            get { return this.IsPhotonViewReady && this.photonView.IsMine; }
         }
 
         #endregion
@@ -118,12 +156,8 @@ namespace Photon.Voice.PUN
 
         protected override void Awake()
         {
-            base.Awake();
             this.photonView = this.GetComponent<PhotonView>();
-            if (this.photonView.ViewID > 0)
-            {
-                this.Init();
-            }
+            this.Init();
         }
 
         private void OnEnable()
@@ -138,38 +172,49 @@ namespace Photon.Voice.PUN
             }
         }
 
-        private IEnumerator Start()
+        private void Start()
         {
-            while (!this.IsSetup && this.photonView.ViewID < 0)
-            {
-                yield return null;
-            }
             this.Init();
         }
         
         private void CheckLateLinking()
         {
-            if (this.IsSpeaker && !this.SpeakerInUse.IsLinked)
+            if (PhotonVoiceNetwork.Instance.Client.InRoom)
             {
-                PhotonVoiceNetwork.Instance.CheckLateLinking(this, this.photonView.ViewID);
+                if (this.IsSpeaker)
+                {
+                    if (!this.IsSpeakerLinked)
+                    {
+                        PhotonVoiceNetwork.Instance.CheckLateLinking(this.SpeakerInUse, this.photonView.ViewID);
+                    }
+                    else if (this.Logger.IsDebugEnabled)
+                    {
+                        this.Logger.LogDebug("Speaker already linked");
+                    }
+                } 
+                else if (this.Logger.IsDebugEnabled)
+                {
+                    this.Logger.LogDebug("PhotonVoiceView does not have a Speaker and may not need late linking check");
+                }
+            }
+            else if (this.Logger.IsDebugEnabled)
+            {
+                this.Logger.LogDebug("Voice client is still not in a room, skipping late linking check");
             }
         }
 
-        private void Setup()
+        internal void Setup()
         {
             if (this.IsSetup)
             {
+                if (this.Logger.IsDebugEnabled)
+                {
+                    this.Logger.LogDebug("PhotonVoiceView already setup");
+                }
                 return;
             }
-            if (this.photonView.IsMine)
-            {
-                this.IsRecorder = this.SetupRecorder();
-            }
-            if (this.SetupDebugSpeaker || !this.photonView.IsMine)
-            {
-                this.IsSpeaker = this.SetupSpeaker();
-            }
-            this.IsSetup = true;
+            this.SetupRecorderInUse();
+            this.SetupSpeakerInUse();
         }
 
         private bool SetupRecorder()
@@ -214,7 +259,7 @@ namespace Photon.Voice.PUN
                 }
                 return false;
             }
-            if (this.photonView.ViewID <= 0)
+            if (!this.IsPhotonViewReady)
             {
                 if (this.Logger.IsWarningEnabled)
                 {
@@ -222,23 +267,16 @@ namespace Photon.Voice.PUN
                 }
                 return false;
             }
-            // check if already initialized
-            if (recorder.IsInitialized)
+            recorder.UserData = this.photonView.ViewID;
+            if (!recorder.IsInitialized)
             {
-                if (recorder.UserData is int && this.photonView.ViewID == (int) recorder.UserData)
-                {
-                    return true;
-                }
-                recorder.UserData = this.photonView.ViewID;
-                if (recorder.RequiresRestart)
-                {
-                    recorder.RestartRecording();
-                }
-                return true;
+                this.RecorderInUse.Init(PhotonVoiceNetwork.Instance);
             }
-            this.RecorderInUse.UserData = this.photonView.ViewID;
-            this.RecorderInUse.Init(PhotonVoiceNetwork.Instance);
-            return true;
+            if (recorder.RequiresRestart)
+            {
+                recorder.RestartRecording();
+            }
+            return recorder.IsInitialized && recorder.UserData is int && this.photonView.ViewID == (int) recorder.UserData;
         }
 
         private bool SetupSpeaker()
@@ -278,7 +316,7 @@ namespace Photon.Voice.PUN
                     {
                         this.speakerInUse = this.gameObject.AddComponent<Speaker>();
                         // get AudioSource and set spatialBlend
-                        AudioSource audioSource = this.speakerInUse.GetComponentInChildren<AudioSource>();
+                        AudioSource audioSource = this.speakerInUse.GetComponent<AudioSource>();
                         audioSource.spatialBlend = 1.0f;
                         return true;
                     }
@@ -297,7 +335,7 @@ namespace Photon.Voice.PUN
                 }
                 return false;
             }
-            AudioSource audioSource = speaker.GetComponentInChildren<AudioSource>();
+            AudioSource audioSource = speaker.GetComponent<AudioSource>();
             if (audioSource == null)
             {
                 if (this.Logger.IsWarningEnabled)
@@ -306,7 +344,118 @@ namespace Photon.Voice.PUN
                 }
                 return false;
             }
+            if (audioSource.mute)
+            {
+                if (this.Logger.IsWarningEnabled)
+                {
+                    this.Logger.LogWarning("audioSource.mute is true, playback may not work properly");
+                }
+            }
+            if (audioSource.volume <= 0f)
+            {
+                if (this.Logger.IsWarningEnabled)
+                {
+                    this.Logger.LogWarning("audioSource.volume is zero, playback may not work properly");
+                }
+            }
+            if (!audioSource.enabled)
+            {
+                if (this.Logger.IsWarningEnabled)
+                {
+                    this.Logger.LogWarning("audioSource.enabled is false, playback may not work properly");
+                }
+            }
             return true;
+        }
+
+        internal void SetupRecorderInUse()
+        {
+            if (this.IsRecorder)
+            {
+                if (this.Logger.IsWarningEnabled)
+                {
+                    this.Logger.LogWarning("Recorder already setup");
+                }
+                return;
+            }
+            if (!this.RequiresRecorder)
+            {
+                if (this.IsPhotonViewReady)
+                {
+                    if (this.Logger.IsWarningEnabled)
+                    {
+                        this.Logger.LogWarning("Recorder not needed");
+                    }
+                }
+                return;
+            }
+            this.IsRecorder = this.SetupRecorder();
+            if (!this.IsRecorder)
+            {
+                if (this.Logger.IsWarningEnabled)
+                {
+                    this.Logger.LogWarning("Recorder not setup for PhotonVoiceView: playback may not work properly.");
+                }
+            } 
+            else 
+            {
+                if (!this.RecorderInUse.IsRecording && !this.RecorderInUse.AutoStart)
+                {
+                    if (this.Logger.IsWarningEnabled)
+                    {
+                        this.Logger.LogWarning("PhotonVoiceView.RecorderInUse.AutoStart is false, don't forget to start recording manually using recorder.StartRecording() or recorder.IsRecording = true.");
+                    }
+                }
+                if (!this.RecorderInUse.TransmitEnabled)
+                {
+                    if (this.Logger.IsWarningEnabled)
+                    {
+                        this.Logger.LogWarning("PhotonVoiceView.RecorderInUse.TransmitEnabled is false, don't forget to set it to true to enable transmission.");
+                    }
+                }
+                if (!this.RecorderInUse.isActiveAndEnabled && this.RecorderInUse.RecordOnlyWhenEnabled)
+                {
+                    if (this.Logger.IsWarningEnabled)
+                    {
+                        this.Logger.LogWarning("PhotonVoiceView.RecorderInUse may not work properly as RecordOnlyWhenEnabled is set to true and recorder is disabled or attached to an inactive GameObject.");
+                    }
+                }
+            }
+        }
+
+        internal void SetupSpeakerInUse()
+        {
+            if (this.IsSpeaker)
+            {
+                if (this.Logger.IsWarningEnabled)
+                {
+                    this.Logger.LogWarning("Speaker already setup");
+                }
+                return;
+            }
+            if (!this.RequiresSpeaker)
+            {
+                if (this.IsPhotonViewReady)
+                {
+                    if (this.Logger.IsWarningEnabled)
+                    {
+                        this.Logger.LogWarning("Speaker not needed");
+                    }
+                }
+                return;
+            }
+            this.IsSpeaker = this.SetupSpeaker();
+            if (!this.IsSpeaker)
+            {
+                if (this.Logger.IsWarningEnabled)
+                {
+                    this.Logger.LogWarning("Speaker not setup for PhotonVoiceView: voice chat will not work.");
+                }
+            }
+            else
+            {
+                this.CheckLateLinking();
+            }
         }
 
         #endregion
@@ -324,14 +473,14 @@ namespace Photon.Voice.PUN
         /// </remarks>
         public void Init()
         {
-            if (this.photonView.ViewID > 0)
+            if (this.IsPhotonViewReady)
             {
                 this.Setup();
                 this.CheckLateLinking();
             }
-            else if (this.Logger.IsWarningEnabled)
+            else if (this.Logger.IsDebugEnabled)
             {
-                this.Logger.LogWarning("Tried to initialize PhotonVoiceView but PhotonView does not have a valid allocated ViewID yet.");
+                this.Logger.LogDebug("Tried to initialize PhotonVoiceView but PhotonView does not have a valid allocated ViewID yet.");
             }
         }        
 
