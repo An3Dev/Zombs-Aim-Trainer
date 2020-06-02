@@ -12,8 +12,6 @@ public class Inventory : MonoBehaviour
 
     public Item P90, Sniper, Scar, Shotgun;
 
-
-
     // Start is called before the first frame update
     void Awake()
     {
@@ -25,11 +23,21 @@ public class Inventory : MonoBehaviour
         SelectItem(0);
     }
 
+    public int GetItemIndex(Item item)
+    {
+        for(int i = 0; i < itemsInInventory.Count; i++)
+        {
+            if (item == itemsInInventory[i])
+            {
+                return i;
+            }
+        }
+        return 0;
+    }
+
     public void AddItem(Item item)
     {
         itemsInInventory.Add(item);
-
-        Debug.Log("Added Item");
     }
 
     public Item SelectItem(int index)

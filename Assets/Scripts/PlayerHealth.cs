@@ -4,34 +4,50 @@ using System.Collections.Generic;
 using UnityEngine;
 using Photon.Pun;
 using Photon.Pun.UtilityScripts;
+using UnityEngine.UI;
 
 public class PlayerHealth : MonoBehaviour, IDamageable<float, GameObject>
 {
     public float currentHealth;
-    
-    public float maxHealth = 200;
+    public float currentShields;
+    float maxHealth = 100;
+
+    float maxShields = 100;
 
     SpriteRenderer spriteRenderer;
     PhotonView photonView;
 
+    Slider healthSlider, shieldSlider;
+
     bool actedOnDeath = false;
+
+    Movement movement;
     // Start is called before the first frame update
     void Start()
     {
         currentHealth = maxHealth;
+        currentShields = maxShields;
         photonView = GetComponent<PhotonView>();
         photonView.RPC("StartSpawn", RpcTarget.AllBuffered, 0.5f);
 
+        shieldSlider = GameObject.Find("ShieldSlider").GetComponent<Slider>();
+        healthSlider = GameObject.Find("HealthSlider").GetComponent<Slider>();
         //Spawn(0);
+
+        movement = transform.root.GetComponent<Movement>();
+        
     }
 
     // Update is called once per frame
     void Update()
     {
+        //Damage(1f, transform.gameObject);
         if (Died() && !actedOnDeath)
         {
             Debug.Log("Died in update");
         }
+
+
     }
 
     [PunRPC]
@@ -41,34 +57,57 @@ public class PlayerHealth : MonoBehaviour, IDamageable<float, GameObject>
         Debug.Log("Started spawn");
     }
 
+    void RefreshSliders()
+    {
+        shieldSlider.value = currentShields / maxShields;
+        healthSlider.value = currentHealth / maxHealth;
+        
+    }
 
     IEnumerator Spawn(float time)
     {
-        Debug.Log(Time.time);
         yield return new WaitForSeconds(time);
-        Debug.Log(Time.time);
 
         Debug.Log("Spawn");
         currentHealth = maxHealth;
+        currentShields = maxShields;
+        RefreshSliders();
+        
+        transform.GetComponent<Movement>().enabled = true;
 
-        if (!An3Apps.GameManager.testMode)
+        
+        if (!PhotonNetwork.OfflineMode)
         {
-            transform.GetComponent<Movement>().enabled = true;
+            photonView.RPC("MakeVisible", RpcTarget.AllBuffered, true, photonView.ViewID);
+            transform.position = (Vector3.left * 8 + (Vector3.right * PhotonNetwork.CurrentRoom.PlayerCount * PhotonNetwork.LocalPlayer.GetPlayerNumber()));
+        }
+        else
+        {
+            MakeVisibleByTransform(true, transform);
+            transform.position = Vector3.left * 8;
         }
 
-        transform.position = (Vector3.left * 8 + (Vector3.right * PhotonNetwork.CurrentRoom.PlayerCount * PhotonNetwork.LocalPlayer.GetPlayerNumber()));
-        photonView.RPC("MakeVisible", RpcTarget.AllBuffered, true, photonView.ViewID);
-        StopCoroutine("Spawn");
+        movement.SetAmmo(true, 0, 0);
+
         actedOnDeath = false;
+
+        StopCoroutine("Spawn");
     }
 
     public void Damage(float damageTaken, GameObject damager)
     {
-        Debug.Log("Current Health: " + currentHealth + " Max Health: " + maxHealth);
+        if (currentShields <= 0)
+        {
+            currentHealth -= damageTaken;
+        } else
+        {
+            currentShields -= damageTaken;
+        }
 
-        currentHealth -= damageTaken;
-        Debug.Log("Damage Taken: " + damageTaken);
-        Debug.Log("Current Health: " + currentHealth);
+        if (photonView.IsMine)
+        {
+            RefreshSliders();
+        }
 
         if (Died())
         {
@@ -86,7 +125,14 @@ public class PlayerHealth : MonoBehaviour, IDamageable<float, GameObject>
         {
             actedOnDeath = true;
             Debug.Log(transform.name + " died");
-            photonView.RPC("Die", RpcTarget.AllBuffered);
+            if (!PhotonNetwork.OfflineMode)
+            {
+                photonView.RPC("Die", RpcTarget.AllBuffered);
+
+            } else
+            {
+                Die();
+            }
             return true;
         }
         return false;
@@ -139,21 +185,21 @@ public class PlayerHealth : MonoBehaviour, IDamageable<float, GameObject>
     [PunRPC]
     void Die()
     {
-        photonView.RPC("MakeVisible", RpcTarget.AllBuffered, false, photonView.ViewID);
-        //MakeVisible(false);
-        //if (photonView.IsMine)
-        //{
-        //    try
-        //    {
-        transform.root.GetComponent<Movement>().enabled = false;
-        //    }
-        //    catch
-        //    {
-        //        Debug.Log("no Movement");
-        //    }
-        //}
 
-        photonView.RPC("StartSpawn", RpcTarget.AllBuffered, 3f);
-        //Debug.Log("MakeInvisible");
+        if (!PhotonNetwork.OfflineMode)
+        {
+            photonView.RPC("MakeVisible", RpcTarget.AllBuffered, false, photonView.ViewID);
+
+            transform.root.GetComponent<Movement>().enabled = false;
+
+            photonView.RPC("StartSpawn", RpcTarget.AllBuffered, 3f);
+        } else
+        {
+            MakeVisibleByTransform(false, transform);
+            transform.root.GetComponent<Movement>().enabled = false;
+
+            StartSpawn(3);
+        }
+        
     }
 }

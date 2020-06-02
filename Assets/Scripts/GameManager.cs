@@ -13,17 +13,14 @@ namespace An3Apps
 
         public static bool testMode = false;
 
-        public void Awake()
+        // Start is called before the first frame update
+        void Awake()
         {
             Instance = this;
-        }
-
-        // Start is called before the first frame update
-        void Start()
-        {
             if (testMode)
             {
                 PhotonNetwork.OfflineMode = true;
+                Instantiate(Resources.Load("Player"), Vector3.left * 8, Quaternion.identity);
             } else if (!PhotonNetwork.IsConnectedAndReady)
             {
                 SceneManager.Instance.LoadScene("Lobby");

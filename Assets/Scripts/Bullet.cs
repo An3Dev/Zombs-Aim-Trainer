@@ -12,6 +12,7 @@ public class Bullet : MonoBehaviour
     float damage = 25;
 
     PhotonView bulletShooter;
+    Transform bulletShooterTransform;
     // Start is called before the first frame update
     void Start()
     {
@@ -39,7 +40,7 @@ public class Bullet : MonoBehaviour
         speed = setSpeed;
         damage = setDamage;
 
-        //Destroy(gameObject, timeBeforeDestroyed);
+        Destroy(gameObject, timeBeforeDestroyed);
     }
 
     public void LateUpdate()
@@ -58,7 +59,7 @@ public class Bullet : MonoBehaviour
 
     public void OnDestroy()
     {
-        Debug.Log("Destroyed");
+
     }
 
     void HitSomething(GameObject collider, Vector2 collisionPoint)
@@ -69,13 +70,14 @@ public class Bullet : MonoBehaviour
             SpawnTargets.Instance.DestroyedTarget();
         }
 
-        if (collider.transform.root.GetComponent<IDamageable<float, GameObject>>() != null && (!PhotonNetwork.OfflineMode ? bulletShooter.ViewID != collider.transform.root.GetComponent<PhotonView>().ViewID : bulletShooter.transform.root != collider.transform.root))
+        // if the collider has a damageable script, and if bullet isn't hitting itself.
+        if (collider.transform.root.GetComponent<IDamageable<float, GameObject>>() != null && (!PhotonNetwork.OfflineMode ? bulletShooter.ViewID != collider.transform.root.GetComponent<PhotonView>().ViewID : bulletShooterTransform.root != collider.transform.root))
         {
             //Debug.Log("Collider ViewID: " + collider.transform.root.GetComponent<PhotonView>().ViewID + " Bullet Shooter View ID: " + bulletShooter.ViewID);
             try
             {
                 collider.transform.root.GetComponent<IDamageable<float, GameObject>>().Damage(damage, bulletShooter.gameObject);
-
+                
                 //if (bulletShooter.GetComponent<PhotonView>().IsMine)
                 //{
                 //    bulletShooter.gameObject.SendMessage("IncreaseKills", 1);
@@ -84,7 +86,7 @@ public class Bullet : MonoBehaviour
             }
             catch
             {
-                // do nothing if object doesn't have damage component
+                collider.transform.root.GetComponent<IDamageable<float, GameObject>>().Damage(damage, bulletShooterTransform.gameObject);
             }
 
             GameObject effect = Instantiate(effectPrefab, collisionPoint, Quaternion.identity);
@@ -97,6 +99,11 @@ public class Bullet : MonoBehaviour
     [PunRPC]
     public void AssignParent(int viewID)
     {
-        bulletShooter = PhotonNetwork.GetPhotonView(viewID);
+        bulletShooter = PhotonNetwork.GetPhotonView(viewID);   
+    }
+
+    public void AssignParentTransform(Transform shooter)
+    {
+        bulletShooterTransform = shooter;
     }
 }

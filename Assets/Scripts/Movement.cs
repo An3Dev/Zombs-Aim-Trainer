@@ -6,6 +6,7 @@ using System.Linq;
 using TMPro;
 using System;
 using Photon.Realtime;
+using UnityEngine.UI;
 
 public class Movement : MonoBehaviour
 {
@@ -39,6 +40,8 @@ public class Movement : MonoBehaviour
 
     Sprite buildingSprite, editingSprite;
 
+    PlayerState lastState;
+
     [Space]
 
     public KeyCode handsKeybinds = KeyCode.Tab, firstSlotKeybind = KeyCode.Alpha1, secondSlotKeybind = KeyCode.Alpha2, thirdSlotKeybind = KeyCode.Alpha3,
@@ -47,6 +50,9 @@ public class Movement : MonoBehaviour
     Item currentItem;
 
     [SerializeField] private SpriteRenderer gunRenderer;
+
+    [SerializeField] Texture2D cursorTexture;
+    Vector2 cursorHotspot;
 
     // Start is called before the first frame update
     void Awake()
@@ -81,9 +87,26 @@ public class Movement : MonoBehaviour
         gameManagerPhotonView = GameObject.Find("GameManager").GetComponent<PhotonView>();
         inventory = GetComponentInChildren<Inventory>();
 
-       
+        ammoUI = GameObject.Find("AmmoUI");
+        currentBulletsInMagText = GetChildByName("CurrentAmmoInMagText", ammoUI.transform).GetComponent<TextMeshProUGUI>();
+        totalAmmoText = GetChildByName("TotalAmmoText", ammoUI.transform).GetComponent<TextMeshProUGUI>();
+        reloadCircle = GetChildByName("ReloadCircle", ammoUI.transform).GetComponent<Image>();
+
+        cursorHotspot = new Vector2(cursorTexture.width / 2, cursorTexture.height / 2);
+        Cursor.SetCursor(cursorTexture, cursorHotspot, CursorMode.Auto);
     }
 
+    Transform GetChildByName(string name, Transform parent)
+    {
+        for(int i = 0; i < parent.childCount; i++)
+        {
+            if (parent.GetChild(i).name == name)
+            {
+                return parent.GetChild(i);
+            }
+        }
+        return null;
+    }
 
     // Start is called before the first frame update
     void Start()
@@ -96,9 +119,18 @@ public class Movement : MonoBehaviour
         killsText = GameObject.Find("KillsText").GetComponent<TextMeshProUGUI>();
 
         currentItem = inventory.SelectItem(0);
+
+        totalAmmoList = new List<int>();
+        currentBulletsInMagList = new List<int>();
+
+        SetAmmo(true, 0, 0);
+
         SwitchToWeapon(currentItem.name);
         photonView.RPC("SwitchToWeapon", RpcTarget.AllBuffered, currentItem.name);
+
+        
     }
+
     // Update is called once per frame
     void Update()
     {
@@ -192,10 +224,6 @@ public class Movement : MonoBehaviour
                 }
 
             }
-        } 
-        if (isEditingWall)
-        {
-            Debug.Log("Editing wall");
             // right click
             if (Input.GetMouseButton(1))
             {
@@ -215,20 +243,31 @@ public class Movement : MonoBehaviour
                     Confirm();
                 }
             }
-        }   
+        } 
 
         if (Input.GetKeyDown(KeyCode.Q))
         {
-            SwitchStates(PlayerState.Building);
-            
+            SwitchStates(PlayerState.Building);           
         }
 
         if (Input.GetKeyDown(KeyCode.LeftShift))
         {
-            previousState = playerState;
-
+            Debug.Log("Shift");
+            if (playerState != PlayerState.Editing)
+            {
+                lastState = playerState;
+            }
             SwitchStates(PlayerState.Editing);
-            playerState = Edit() ? PlayerState.Editing : previousState;
+            playerState = Edit() ? PlayerState.Editing : lastState;
+
+            if (playerState == PlayerState.Editing)
+            {
+                
+            } else if (playerState == PlayerState.Weapon)
+            {
+                Debug.Log("Weapon");
+                SwitchToWeapon(currentItem.name);
+            }
         }
 
         //// if scrollwheel is used switch to weapon
@@ -255,11 +294,6 @@ public class Movement : MonoBehaviour
                 wallPreview.SetActive(true);
             }
 
-            //if (Physics2D.OverlapPoint(tempWallPosition, buildsMask))
-            //{
-            //    return;
-            //}
-
             wallPreview.transform.position = tempWallPosition;
             wallPreview.transform.rotation = tempWallRotation;
         }
@@ -268,41 +302,76 @@ public class Movement : MonoBehaviour
 
         if (Input.GetKeyDown(firstSlotKeybind)) {
             currentItem = inventory.SelectItem(0);
-            //SwitchToWeapon(currentItem.name);
-            photonView.RPC("SwitchToWeapon", RpcTarget.AllBuffered, currentItem.name);
+
+            if (PhotonNetwork.OfflineMode)
+            {
+                SwitchToWeapon(currentItem.name);
+            }
+            else
+            {
+                photonView.RPC("SwitchToWeapon", RpcTarget.AllBuffered, currentItem.name);
+            }
         }
         else if (Input.GetKeyDown(secondSlotKeybind))
         {
             currentItem = inventory.SelectItem(1);
 
-            //SwitchToWeapon(currentItem.name);
-            photonView.RPC("SwitchToWeapon", RpcTarget.AllBuffered, currentItem.name);
+            if (PhotonNetwork.OfflineMode)
+            {
+                SwitchToWeapon(currentItem.name);
+            }
+            else
+            {
+                photonView.RPC("SwitchToWeapon", RpcTarget.AllBuffered, currentItem.name);
+            }
 
         }
         else if (Input.GetKeyDown(thirdSlotKeybind))
         {
             currentItem = inventory.SelectItem(2);
 
-            //SwitchToWeapon(currentItem.name);
-            photonView.RPC("SwitchToWeapon", RpcTarget.AllBuffered, currentItem.name);
+            if (PhotonNetwork.OfflineMode)
+            {
+                SwitchToWeapon(currentItem.name);
+            }
+            else
+            {
+                photonView.RPC("SwitchToWeapon", RpcTarget.AllBuffered, currentItem.name);
+            }
 
         }
         else if (Input.GetKeyDown(fourthSlotKeybind))
         {
             currentItem = inventory.SelectItem(3);
 
-            //SwitchToWeapon(currentItem.name);
-            photonView.RPC("SwitchToWeapon", RpcTarget.AllBuffered, currentItem.name);
+            if (PhotonNetwork.OfflineMode)
+            {
+                SwitchToWeapon(currentItem.name);
+            }
+            else
+            {
+                photonView.RPC("SwitchToWeapon", RpcTarget.AllBuffered, currentItem.name);
+            }
 
         }
         else if (Input.GetKeyDown(fifthSlotKeybind))
         {
             currentItem = inventory.SelectItem(4);
 
-            //SwitchToWeapon(currentItem.name);
-            photonView.RPC("SwitchToWeapon", RpcTarget.AllBuffered, currentItem.name);
+            if (PhotonNetwork.OfflineMode)
+            {
+                SwitchToWeapon(currentItem.name);
+            } else
+            {
+                photonView.RPC("SwitchToWeapon", RpcTarget.AllBuffered, currentItem.name);
+            }
 
         }
+        else if (Input.GetKeyDown(reloadKeybind))
+        {
+            Reload();
+        }
+        
     }
 
     //[PunRPC]
@@ -322,34 +391,6 @@ public class Movement : MonoBehaviour
     //    lastTimeShot = Time.timeSinceLevelLoad - timeBetweenShots;
     //}
 
-    [PunRPC]
-    void SwitchToWeapon(string currentItem)
-    {
-        SwitchStates(PlayerState.Weapon);
-
-        Debug.Log(currentItem);
-
-        Item thisItem = Resources.Load("Guns/" + currentItem) as Item;
-
-        // set stats.
-        SetStats(thisItem);
-
-        // Show item.
-        gunRenderer.sprite = thisItem.topViewSprite;
-
-        // reset time since last shot;
-        lastTimeShot = Time.timeSinceLevelLoad - timeBetweenShots;
-    }
-
-    void SetStats(Item item)
-    {
-        timeBetweenShots = currentItem.timeBetweenShots;
-        bulletSpeed = currentItem.bulletSpeed;
-        bulletDamage = currentItem.damage;
-        bulletSprite = currentItem.bulletSprite;
-    }
-
-
     void SwitchStates(PlayerState stateToChangeTo)
     {
         playerState = stateToChangeTo;
@@ -357,11 +398,15 @@ public class Movement : MonoBehaviour
         if (stateToChangeTo == PlayerState.Building)
         {
             gunRenderer.sprite = buildingSprite;
+            gunRenderer.transform.GetComponent<BoxCollider2D>().enabled = false;
+            lastState = PlayerState.Building;
 
         }
         else if (stateToChangeTo == PlayerState.Editing)
         {
             gunRenderer.sprite = editingSprite;
+            gunRenderer.transform.GetComponent<BoxCollider2D>().enabled = false;
+
         }
 
         if (!photonView.IsMine)
@@ -373,19 +418,24 @@ public class Movement : MonoBehaviour
             gunRenderer.sprite = buildingSprite;
             CancelEdit();        
             StartBuilding();
+            gunRenderer.transform.GetComponent<BoxCollider2D>().enabled = false;
+            lastState = PlayerState.Building;
+
         }
         else if (stateToChangeTo == PlayerState.Editing)
         {
             gunRenderer.sprite = editingSprite;
             StopBuilding();
+            gunRenderer.transform.GetComponent<BoxCollider2D>().enabled = false;
             
         } else if (stateToChangeTo == PlayerState.Weapon)
         {
             StopBuilding();
             CancelEdit();
-        }
+            gunRenderer.transform.GetComponent<BoxCollider2D>().enabled = true;
+            lastState = PlayerState.Weapon;
 
-        
+        }
     }
 
     #region movement code
@@ -433,6 +483,9 @@ public class Movement : MonoBehaviour
         mouseWorldPos = new Vector3(mouseWorldPos.x, mouseWorldPos.y, 0);
         Vector3 direction = (mouseWorldPos - transform.position).normalized;
         transform.up = direction;
+
+        Vector3 gunDirection = (mouseWorldPos - bulletOrigin.root.position).normalized;
+        gunRenderer.transform.right = gunDirection;
     }
 
     #endregion Movement code
@@ -495,17 +548,10 @@ public class Movement : MonoBehaviour
             return;
         }
 
-        try
+        if (!PhotonNetwork.OfflineMode)
         {
             PhotonNetwork.Instantiate("Wall", tempWallPosition, tempWallRotation);
-        }
-        catch
-        {
-            Instantiate(wallPrefab, tempWallPosition, tempWallRotation);
-            Debug.Log("test");
-        }
-
-        if (PhotonNetwork.OfflineMode)
+        } else
         {
             Instantiate(wallPrefab, tempWallPosition, tempWallRotation);
         }
@@ -616,20 +662,162 @@ public class Movement : MonoBehaviour
     int kills = 0;
     public TextMeshProUGUI killsText;
 
+    List<int> totalAmmoList;
+    List<int> currentBulletsInMagList;
+
+    float startingAmmoMultiplier = 3;
+
+    int totalBulletsAvailable;
+    int currentBulletsInMag;
+
+    GameObject ammoUI;
+    TextMeshProUGUI totalAmmoText, currentBulletsInMagText;
+    Image reloadCircle;
+
+    bool isReloading = false;
+
     public void IncreaseKills(int amount)
     {
         kills += amount;
         killsText.text = kills.ToString();
     }
 
+    public void SetAmmo(bool setToMax, int from, int to)
+    {
+
+        
+        // if want to set the ammo to its default staring ammo.
+        if (setToMax)
+        {
+            totalAmmoList.Clear();
+            currentBulletsInMagList.Clear();
+            for (int i = 0; i < inventory.itemsInInventory.Count; i++)
+            {
+                totalAmmoList.Insert(i, (inventory.itemsInInventory[i].startingAmmo));
+                currentBulletsInMagList.Insert(i, inventory.itemsInInventory[i].magazineSize);
+            }
+            SwitchToWeapon(currentItem.name);
+            Debug.Log("Set ammo");
+            Debug.Log(totalBulletsAvailable);
+        }
+        else
+        {
+            // swaps data.
+            // total ammo data
+            int toAmount = totalAmmoList[to];
+            int fromAmount = totalAmmoList[from];
+            totalAmmoList.RemoveAt(to);
+            totalAmmoList.RemoveAt(from);
+
+            totalAmmoList.Insert(from, toAmount);
+            totalAmmoList.Insert(to, fromAmount);
+
+            // current bullets data
+            toAmount = currentBulletsInMagList[to];
+            fromAmount = currentBulletsInMagList[from];
+            currentBulletsInMagList.RemoveAt(to);
+            currentBulletsInMagList.RemoveAt(from);
+
+            currentBulletsInMagList.Insert(from, toAmount);
+            currentBulletsInMagList.Insert(to, fromAmount);
+        }
+
+        //UpdateAmmoList();
+    }
+
+    [PunRPC]
+    void SwitchToWeapon(string currentItem)
+    {
+        SwitchStates(PlayerState.Weapon);
+
+        Item thisItem = Resources.Load("Guns/" + currentItem) as Item;
+
+        // set stats.
+        SetStats(thisItem);
+
+        StopCoroutine("StartReload");
+        StopCoroutine("ReloadAnimation");
+        reloadCircle.gameObject.SetActive(false);
+
+        // Show item.
+        gunRenderer.sprite = thisItem.topViewSprite;
+
+        // reset time since last shot;
+        lastTimeShot = Time.timeSinceLevelLoad - timeBetweenShots;
+    }
+
+    void SetStats(Item item)
+    {
+        timeBetweenShots = item.timeBetweenShots;
+        bulletSpeed = item.bulletSpeed;
+        bulletDamage = item.damage;
+        bulletSprite = item.bulletSprite;
+        reloadTime = item.reloadTime;
+
+        // if not in offline mode, check if photon view is mine. If in offline mode, if statement is true.
+        if (!PhotonNetwork.OfflineMode ? photonView.IsMine : 1==1)
+        {
+            totalBulletsAvailable = totalAmmoList[inventory.GetItemIndex(item)];
+            currentBulletsInMag = currentBulletsInMagList[inventory.GetItemIndex(item)];
+        }
+
+        UpdateAmmoList();
+    }
+
+    void Reload()
+    {
+        if (totalBulletsAvailable < currentItem.magazineSize || currentBulletsInMag >= currentItem.magazineSize)
+        {
+            Debug.Log("No ammo");
+            return;
+        }
+        StartCoroutine("StartReload", reloadTime);
+    }
+
+    IEnumerator StartReload(float time)
+    {
+        StartCoroutine("ReloadAnimation", time);
+        yield return new WaitForSeconds(time);
+        
+        currentBulletsInMag = totalBulletsAvailable >= currentItem.magazineSize ? currentItem.magazineSize : totalBulletsAvailable;
+        UpdateAmmoList();
+        Debug.Log("Reloaded in " + time + " seconds");
+        StopCoroutine("StartReload");
+    }
+
+    IEnumerator ReloadAnimation(float time)
+    {
+        float duration = time; 
+        float normalizedTime = 0;
+        reloadCircle.gameObject.SetActive(true);
+        while (normalizedTime <= 1f)
+        {
+            reloadCircle.fillAmount = normalizedTime;
+            reloadCircle.transform.position = Input.mousePosition;
+            normalizedTime += Time.deltaTime / duration;
+            yield return null;
+        }
+        reloadCircle.gameObject.SetActive(false);
+
+    }
+
     public void TryShooting()
     {
         if (Time.timeSinceLevelLoad - lastTimeShot > timeBetweenShots)
         {
+            if (currentBulletsInMag <= 0)
+            {
+                Debug.Log("No bullets in mag");
+                return;
+            }
+
+            StopCoroutine("StartReload");
+            StopCoroutine("ReloadAnimation");
+            reloadCircle.gameObject.SetActive(false);
+
             Vector3 mouseWorldPos = mainCamera.ScreenToWorldPoint(Input.mousePosition);
             mouseWorldPos = new Vector3(mouseWorldPos.x, mouseWorldPos.y, 0);
-            Vector3 direction = (mouseWorldPos - transform.root.position).normalized;
-
+            Vector3 direction = (mouseWorldPos - bulletOrigin.position).normalized;
 
             if (PhotonNetwork.OfflineMode)
             {
@@ -649,19 +837,39 @@ public class Movement : MonoBehaviour
             lastTimeShot = Time.timeSinceLevelLoad;
             timesShot++;
 
+            totalBulletsAvailable--;
+            currentBulletsInMag--;
+            UpdateAmmoList();
         }
+    }
+
+    void UpdateAmmoList()
+    {
+        totalAmmoList[inventory.GetItemIndex(currentItem)] = totalBulletsAvailable;
+        currentBulletsInMagList[inventory.GetItemIndex(currentItem)] = currentBulletsInMag;
+
+        currentBulletsInMagText.text = currentBulletsInMag.ToString();
+
+        int totalAmmo = currentItem.magazineSize - currentBulletsInMag + totalBulletsAvailable - currentItem.magazineSize;
+        totalAmmoText.text = "/" + totalAmmo;
     }
 
     [PunRPC]
     public void SpawnBullet(Vector3 location, Vector3 direction, float speedOfBullet, float damageOfBullet, float timeBeforeDestroy)
     {
-        //Debug.Log("Info: " + info);
         GameObject bullet = Instantiate(bulletPrefab, location, Quaternion.identity);
         //Debug.Log("Bullet script: " + bullet.GetComponent<Bullet>());
         bullet.GetComponent<Bullet>().SetStats(speedOfBullet, damageOfBullet, timeBeforeDestroy);
         bullet.GetComponent<SpriteRenderer>().sprite = bulletSprite;
         bullet.transform.up = direction;
-        bullet.SendMessage("AssignParent", photonView.ViewID);
+
+        if (!PhotonNetwork.OfflineMode)
+        {
+            bullet.SendMessage("AssignParent", photonView.ViewID);
+        } else
+        {
+            bullet.SendMessage("AssignParentTransform", transform.root);
+        }
         //Debug.Log("Spawned bullet");
     }
     #endregion Shooting code
@@ -699,6 +907,7 @@ public class Movement : MonoBehaviour
 
     public bool Edit()
     {
+        Debug.Log("Edit");
         if (isEditingWall)
         {
             Debug.Log("Confirm");
@@ -772,15 +981,20 @@ public class Movement : MonoBehaviour
         // if both are pressed, don't edit and show regular wall or if both edit squares are not selected
         if ((leftEditPress.activeInHierarchy && rightEditPress.activeInHierarchy) || (leftEdit.activeInHierarchy && rightEdit.activeInHierarchy))
         {
+
+            if (!PhotonNetwork.OfflineMode)
+            {
+                gameManagerPhotonView.RPC("EnableGameObject", RpcTarget.AllBufferedViaServer, true, regularWallPhotonView.ViewID);
+                gameManagerPhotonView.RPC("EnableGameObject", RpcTarget.AllBufferedViaServer, false, leftWallPhotonView.ViewID);
+                gameManagerPhotonView.RPC("EnableGameObject", RpcTarget.AllBufferedViaServer, false, rightWallPhotonView.ViewID);
+
+            }
             // showRegularWall
             regularWall.SetActive(true);
-            gameManagerPhotonView.RPC("EnableGameObject", RpcTarget.AllBufferedViaServer, true, regularWallPhotonView.ViewID);
 
             leftWall.SetActive(false);
-            gameManagerPhotonView.RPC("EnableGameObject", RpcTarget.AllBufferedViaServer, false, leftWallPhotonView.ViewID);
 
             rightWall.SetActive(false);
-            gameManagerPhotonView.RPC("EnableGameObject", RpcTarget.AllBufferedViaServer, false, rightWallPhotonView.ViewID);
 
         }
 
@@ -790,10 +1004,12 @@ public class Movement : MonoBehaviour
             leftWall.SetActive(false);
             regularWall.SetActive(false);
 
-            gameManagerPhotonView.RPC("EnableGameObject", RpcTarget.AllBufferedViaServer, false, regularWallPhotonView.ViewID);
-            gameManagerPhotonView.RPC("EnableGameObject", RpcTarget.AllBufferedViaServer, false, leftWallPhotonView.ViewID);
-            gameManagerPhotonView.RPC("EnableGameObject", RpcTarget.AllBufferedViaServer, true, rightWallPhotonView.ViewID);
-
+            if (!PhotonNetwork.OfflineMode)
+            {
+                gameManagerPhotonView.RPC("EnableGameObject", RpcTarget.AllBufferedViaServer, false, regularWallPhotonView.ViewID);
+                gameManagerPhotonView.RPC("EnableGameObject", RpcTarget.AllBufferedViaServer, false, leftWallPhotonView.ViewID);
+                gameManagerPhotonView.RPC("EnableGameObject", RpcTarget.AllBufferedViaServer, true, rightWallPhotonView.ViewID);
+            }
 
         }
         else if (rightEditPress.activeInHierarchy)
@@ -802,16 +1018,29 @@ public class Movement : MonoBehaviour
             rightWall.SetActive(false);
             regularWall.SetActive(false);
 
-            gameManagerPhotonView.RPC("EnableGameObject", RpcTarget.AllBufferedViaServer, true, leftWallPhotonView.ViewID);
-            gameManagerPhotonView.RPC("EnableGameObject", RpcTarget.AllBufferedViaServer, false, rightWallPhotonView.ViewID);
-            gameManagerPhotonView.RPC("EnableGameObject", RpcTarget.AllBufferedViaServer, false, regularWallPhotonView.ViewID);
-
+            if (!PhotonNetwork.OfflineMode)
+            {
+                gameManagerPhotonView.RPC("EnableGameObject", RpcTarget.AllBufferedViaServer, true, leftWallPhotonView.ViewID);
+                gameManagerPhotonView.RPC("EnableGameObject", RpcTarget.AllBufferedViaServer, false, rightWallPhotonView.ViewID);
+                gameManagerPhotonView.RPC("EnableGameObject", RpcTarget.AllBufferedViaServer, false, regularWallPhotonView.ViewID);
+            }
         }
 
         ResetEditWall();
         editWall.SetActive(false);
         disabledWall.SetActive(true);
         StoppedEditing();
+
+        Debug.Log(lastState);
+        if (lastState == PlayerState.Weapon)
+        {
+            SwitchToWeapon(currentItem.name);
+            
+        } else if (lastState == PlayerState.Building)
+        {
+            SwitchStates(PlayerState.Building);
+            StartBuilding();
+        }
 
         isEditingWall = false;
     }

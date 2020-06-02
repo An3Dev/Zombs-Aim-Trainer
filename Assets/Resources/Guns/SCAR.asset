@@ -20,14 +20,15 @@ MonoBehaviour:
   muzzleFlashSprite: {fileID: 0}
   bulletSprite: {fileID: 7039401936283989537, guid: 037e7cbca5e351343818ca3bfca97f80,
     type: 3}
-  timeBetweenShots: 0.25
-  damage: 33
-  reloadTime: 5
-  magazineSize: 5
+  timeBetweenShots: 0.2
+  damage: 35
+  reloadTime: 2.5
+  magazineSize: 30
   bloomAmount: 0
   bulletSpeed: 50
-  amountOfBullets: 1
+  bulletsShotAtOnce: 1
   timeBeforeDestroy: 0.8
+  startingAmmo: 90
   throwable: 0
   isHealingItem: 0
   healingTime: 0

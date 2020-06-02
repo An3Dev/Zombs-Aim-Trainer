@@ -22,12 +22,13 @@ MonoBehaviour:
     type: 3}
   timeBetweenShots: 0.1
   damage: 25
-  reloadTime: 3
+  reloadTime: 2
   magazineSize: 40
   bloomAmount: 30
   bulletSpeed: 25
-  amountOfBullets: 1
+  bulletsShotAtOnce: 1
   timeBeforeDestroy: 0.7
+  startingAmmo: 120
   throwable: 0
   isHealingItem: 0
   healingTime: 0

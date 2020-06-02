@@ -19,8 +19,10 @@ public class Item : ScriptableObject
     public int bloomAmount;
     public float bulletSpeed;
 
-    public int amountOfBullets;
+    public int bulletsShotAtOnce;
     public float timeBeforeDestroy;
+
+    public int startingAmmo;
 
     public bool throwable;
 

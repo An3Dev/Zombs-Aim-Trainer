@@ -629,6 +629,7 @@ MonoBehaviour:
   fifthSlotKeybind: 53
   reloadKeybind: 114
   gunRenderer: {fileID: 6622199765515647137}
+  cursorTexture: {fileID: 2800000, guid: 30a7d1ad9c6dff04eba3c27189a7e4e4, type: 3}
   wallPrefab: {fileID: 9095002794806272711, guid: cee236a4249bffa4f97e81d6744aae7e,
     type: 3}
   wallPreview: {fileID: 0}
@@ -756,7 +757,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   currentHealth: 0
-  maxHealth: 200
+  currentShields: 0
 --- !u!1 &7862168792113121304
 GameObject:
   m_ObjectHideFlags: 0
