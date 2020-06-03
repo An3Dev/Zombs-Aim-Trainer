@@ -22,7 +22,7 @@ MonoBehaviour:
     type: 3}
   timeBetweenShots: 0.6
   damage: 80
-  reloadTime: 1.5
+  reloadTime: 1
   magazineSize: 1
   bloomAmount: 0
   bulletSpeed: 50

@@ -28,7 +28,14 @@ public class PlayerHealth : MonoBehaviour, IDamageable<float, GameObject>
         currentHealth = maxHealth;
         currentShields = maxShields;
         photonView = GetComponent<PhotonView>();
-        photonView.RPC("StartSpawn", RpcTarget.AllBuffered, 0.5f);
+
+        if (!PhotonNetwork.OfflineMode)
+        {
+            photonView.RPC("StartSpawn", RpcTarget.AllBuffered, 0f);
+        } else
+        {
+            StartSpawn(0);
+        }
 
         shieldSlider = GameObject.Find("ShieldSlider").GetComponent<Slider>();
         healthSlider = GameObject.Find("HealthSlider").GetComponent<Slider>();

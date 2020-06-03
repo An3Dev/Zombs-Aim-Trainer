@@ -27,7 +27,7 @@ Transform:
   m_GameObject: {fileID: 1909279254178507748}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0.28297514, y: 1.482, z: 0}
-  m_LocalScale: {x: 0.15, y: 0.34, z: 1}
+  m_LocalScale: {x: 0.225, y: 0.51, z: 1}
   m_Children:
   - {fileID: 9113675099221510116}
   m_Father: {fileID: 0}
@@ -98,6 +98,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   speed: 30
   effectPrefab: {fileID: 7888158957719190237, guid: 5bf0c619edc201340abf4f5b1eb4e54e,
+    type: 3}
+  damageTextPrefab: {fileID: 375094231577810256, guid: 0e76476f33b5426468b87489057d64fd,
+    type: 3}
+  damageTextComponent: {fileID: 375094231577810259, guid: 0e76476f33b5426468b87489057d64fd,
     type: 3}
 --- !u!1 &5353790484244743017
 GameObject:

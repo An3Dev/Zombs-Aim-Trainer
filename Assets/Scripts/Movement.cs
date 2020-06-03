@@ -55,6 +55,8 @@ public class Movement : MonoBehaviour
     [SerializeField] Texture2D cursorTexture;
     Vector2 cursorHotspot;
 
+    TextMeshProUGUI reloadCircleText;
+
     // Start is called before the first frame update
     void Awake()
     {
@@ -64,12 +66,10 @@ public class Movement : MonoBehaviour
         Instance = this;
         photonView = GetComponent<PhotonView>();
 
-        if (!photonView.IsMine && !An3Apps.GameManager.testMode)
+        if (!PhotonNetwork.OfflineMode && !photonView.IsMine)
         {
             return;
         }
-
-        Debug.Log(photonView.ViewID + " Is Mine in awake");
 
         mainCamera = Camera.main;
 
@@ -91,6 +91,8 @@ public class Movement : MonoBehaviour
         totalAmmoText = GetChildByName("TotalAmmoText", ammoUI.transform).GetComponent<TextMeshProUGUI>();
         reloadCircle = GetChildByName("ReloadCircle", ammoUI.transform).GetComponent<Image>();
 
+        reloadCircleText = reloadCircle.GetComponentInChildren<TextMeshProUGUI>();
+
         cursorHotspot = new Vector2(cursorTexture.width / 2, cursorTexture.height / 2);
         Cursor.SetCursor(cursorTexture, cursorHotspot, CursorMode.Auto);
 
@@ -109,20 +111,15 @@ public class Movement : MonoBehaviour
 
         killsText = GameObject.Find("KillsText").GetComponent<TextMeshProUGUI>();
 
-
-        totalAmmoList = new List<int>();
-        currentBulletsInMagList = new List<int>();
-
         currentItem = inventory.SelectItem(0);
-        Debug.Log(inventory.itemsInInventory.Count);
-
+        SetAmmo(true, 0, 0);
         SwitchToWeapon(currentItem.name);
-        photonView.RPC("SwitchToWeapon", RpcTarget.AllBuffered, currentItem.name);
 
-        if (!photonView.IsMine)
+        if (!PhotonNetwork.OfflineMode && !photonView.IsMine || PhotonNetwork.OfflineMode)
         {
             return;
         }
+        photonView.RPC("SwitchToWeapon", RpcTarget.AllBuffered, currentItem.name);
     }
 
     Transform GetChildByName(string name, Transform parent)
@@ -142,7 +139,7 @@ public class Movement : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        if (!photonView.IsMine && !An3Apps.GameManager.testMode)
+        if (!PhotonNetwork.OfflineMode && !photonView.IsMine)
         {
             return;
         }
@@ -475,8 +472,8 @@ public class Movement : MonoBehaviour
         Vector3 direction = (mouseWorldPos - transform.position).normalized;
         transform.up = direction;
 
-        Vector3 gunDirection = (mouseWorldPos - bulletOrigin.root.position).normalized;
-        gunRenderer.transform.right = gunDirection;
+        //Vector3 gunDirection = (mouseWorldPos - bulletOrigin.position).normalized;
+        //gunRenderer.transform.right = gunDirection;
     }
 
     #endregion Movement code
@@ -726,7 +723,7 @@ public class Movement : MonoBehaviour
         gunRenderer.sprite = thisItem.topViewSprite;
 
 
-        if (!photonView.IsMine)
+        if (!PhotonNetwork.OfflineMode && !photonView.IsMine)
         {
             return;
         }
@@ -767,7 +764,7 @@ public class Movement : MonoBehaviour
     {
         if (currentBulletsInMag >= currentItem.magazineSize)
         {
-            Debug.Log("No ammo");
+            Debug.Log("Full ammo");
             return;
         }
         StartCoroutine("StartReload", reloadTime);
@@ -792,7 +789,8 @@ public class Movement : MonoBehaviour
         while (normalizedTime <= 1f)
         {
             reloadCircle.fillAmount = normalizedTime;
-            reloadCircle.transform.position = Input.mousePosition;
+            reloadCircle.transform.position = mainCamera.WorldToScreenPoint(rb.position + Vector2.down * 1.5f);
+            reloadCircleText.text = (duration - (normalizedTime * duration)).ToString("0.0");
             normalizedTime += Time.deltaTime / duration;
             yield return null;
         }
@@ -807,6 +805,7 @@ public class Movement : MonoBehaviour
             if (currentBulletsInMag <= 0)
             {
                 Debug.Log("No bullets in mag");
+                Reload();
                 return;
             }
 
@@ -816,27 +815,34 @@ public class Movement : MonoBehaviour
 
             Vector3 mouseWorldPos = mainCamera.ScreenToWorldPoint(Input.mousePosition);
             mouseWorldPos = new Vector3(mouseWorldPos.x, mouseWorldPos.y, 0);
-            Vector3 direction = (mouseWorldPos - bulletOrigin.position).normalized;
+            Vector3 direction = (mouseWorldPos - transform.root.position).normalized;
 
-            float maxAngle = 70;
+            float maxAngle = 0;
 
+            if (amountOfBulletsShot > 1)
+            {
+                maxAngle = 30;
+            }
 
             if (PhotonNetwork.OfflineMode)
             {
-                for(int i = 0; i < amountOfBulletsShot; i++)
+                float angle = Angle(direction);
+                for (int i = 0; i < amountOfBulletsShot; i++)
                 {
-                    //Vector3 angle = 
-                    SpawnBullet(bulletOrigin.position, direction, bulletSpeed, bulletDamage, currentItem.timeBeforeDestroy);
+                    float thisAngle = angle + (maxAngle / 2) - (maxAngle / amountOfBulletsShot * i);
+                    Vector3 newDirection = Quaternion.AngleAxis(thisAngle, Vector3.forward) * Vector3.right;
+
+                    SpawnBullet(bulletOrigin.position, newDirection, bulletSpeed, bulletDamage, currentItem.timeBeforeDestroy);
                 }
             } else
             {
-                try
+                float angle = Angle(direction);
+                for (int i = 0; i < amountOfBulletsShot; i++)
                 {
-                    photonView.RPC("SpawnBullet", RpcTarget.AllBufferedViaServer, bulletOrigin.position, direction, bulletSpeed, bulletDamage, currentItem.timeBeforeDestroy);
-                }
-                catch
-                {
-                    Debug.Log("Spawning bullet error");
+                    float thisAngle = angle + (maxAngle / 2) - (maxAngle / amountOfBulletsShot * i);
+                    Vector3 newDirection = Quaternion.AngleAxis(thisAngle, Vector3.forward) * Vector3.right;
+
+                    photonView.RPC("SpawnBullet", RpcTarget.AllBufferedViaServer, bulletOrigin.position, newDirection, bulletSpeed, bulletDamage, currentItem.timeBeforeDestroy);
                 }
             }        
 
@@ -845,8 +851,36 @@ public class Movement : MonoBehaviour
 
             totalBulletsAvailable--;
             currentBulletsInMag--;
+
+            if (currentBulletsInMag < 1 && totalBulletsAvailable > 1)   
+            {
+                // if auto reload is on
+                Reload();
+            }
             UpdateAmmoList();
         }
+    }
+
+
+    private float Angle(Vector3 v)
+    {
+        // make sure the vector is normalized.
+        v.Normalize();
+        // get the basic angle:
+        var ang = Mathf.Asin(v.y) * Mathf.Rad2Deg;
+
+        // Since negative x values in vector3 give negative angles
+        // fix the angle for 2nd and 3rd quadrants:
+        if (v.x < 0)
+        {
+            ang = 180 - ang;
+        }
+        else // fix the angle for 4th quadrant:
+        if (v.y < 0)
+        {
+            ang = 360 + ang;
+        }
+        return ang;
     }
 
     void UpdateAmmoList()

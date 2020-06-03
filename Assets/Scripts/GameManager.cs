@@ -14,7 +14,7 @@ namespace An3Apps
     {
         public static GameManager Instance;
 
-        public static bool testMode = false;
+        public static bool testMode = true;
 
         [SerializeField] GameObject map;
 
@@ -31,7 +31,7 @@ namespace An3Apps
             }
             else if (!PhotonNetwork.IsConnectedAndReady)
             {
-                SceneManager.Instance.LoadScene("Lobby");
+                UnityEngine.SceneManagement.SceneManager.LoadScene("Lobby");
             }
 
             if (PhotonNetwork.IsConnected && !testMode)

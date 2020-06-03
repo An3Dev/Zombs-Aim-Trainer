@@ -15,6 +15,8 @@ public class Bullet : MonoBehaviour
     PhotonView bulletShooter;
     Transform bulletShooterTransform;
     GameObject canvas;
+    [SerializeField]GameObject damageTextPrefab;
+    [SerializeField]TextMeshPro damageTextComponent;
 
     Camera mainCamera;
     // Start is called before the first frame update
@@ -91,7 +93,9 @@ public class Bullet : MonoBehaviour
             }
 
             // Add text that says damage
-
+            GameObject damageText = Instantiate(damageTextPrefab, collisionPoint, Quaternion.identity);
+            damageTextComponent.text = damage.ToString();
+            Destroy(damageText, 1);
             GameObject effect = Instantiate(effectPrefab, collisionPoint, Quaternion.identity);
             Destroy(effect, 3);
             Destroy(gameObject);
