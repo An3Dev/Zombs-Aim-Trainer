@@ -12,15 +12,15 @@ public class Inventory : MonoBehaviour
 
     public Item P90, Sniper, Scar, Shotgun;
 
-    // Start is called before the first frame update
-    void Awake()
+    private void Awake()
     {
         AddItem(P90);
         AddItem(Sniper);
         AddItem(Scar);
         AddItem(Shotgun);
-
-        SelectItem(0);
+    }
+    private void Start()
+    {
     }
 
     public int GetItemIndex(Item item)

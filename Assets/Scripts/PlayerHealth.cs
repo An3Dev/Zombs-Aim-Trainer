@@ -5,7 +5,7 @@ using UnityEngine;
 using Photon.Pun;
 using Photon.Pun.UtilityScripts;
 using UnityEngine.UI;
-
+using ExitGames.Client.Photon;
 public class PlayerHealth : MonoBehaviour, IDamageable<float, GameObject>
 {
     public float currentHealth;
@@ -42,19 +42,16 @@ public class PlayerHealth : MonoBehaviour, IDamageable<float, GameObject>
     void Update()
     {
         //Damage(1f, transform.gameObject);
-        if (Died() && !actedOnDeath)
-        {
-            Debug.Log("Died in update");
-        }
-
-
+        //if (Died() && !actedOnDeath)
+        //{
+        //    Debug.Log("Died in update");
+        //}
     }
 
     [PunRPC]
     void StartSpawn(float time)
     {
         StartCoroutine("Spawn", time);
-        Debug.Log("Started spawn");
     }
 
     void RefreshSliders()
@@ -67,12 +64,15 @@ public class PlayerHealth : MonoBehaviour, IDamageable<float, GameObject>
     IEnumerator Spawn(float time)
     {
         yield return new WaitForSeconds(time);
-
-        Debug.Log("Spawn");
         currentHealth = maxHealth;
         currentShields = maxShields;
-        RefreshSliders();
-        
+
+        if(photonView.IsMine)
+        {
+            RefreshSliders();
+            movement.SetAmmo(true, 0, 0);
+        }
+
         transform.GetComponent<Movement>().enabled = true;
 
         
@@ -86,8 +86,6 @@ public class PlayerHealth : MonoBehaviour, IDamageable<float, GameObject>
             MakeVisibleByTransform(true, transform);
             transform.position = Vector3.left * 8;
         }
-
-        movement.SetAmmo(true, 0, 0);
 
         actedOnDeath = false;
 
@@ -114,6 +112,13 @@ public class PlayerHealth : MonoBehaviour, IDamageable<float, GameObject>
             if(damager.GetComponent<PhotonView>().IsMine && !An3Apps.GameManager.testMode)
             {
                 damager.SendMessage("IncreaseKills", 1);
+            }
+
+            object deaths;
+            if (PhotonNetwork.LocalPlayer.CustomProperties.TryGetValue(QuickBuildsGame.PLAYER_DEATHS, out deaths))
+            {
+                PhotonNetwork.LocalPlayer.SetCustomProperties(new ExitGames.Client.Photon.Hashtable { { QuickBuildsGame.PLAYER_DEATHS, (int)deaths + 1 } });
+                Debug.Log("Deaths: " + deaths);
             }
         }
 
@@ -142,7 +147,6 @@ public class PlayerHealth : MonoBehaviour, IDamageable<float, GameObject>
     void MakeVisible(bool makeVisible, int viewID)
     {
         Transform thisTransform = PhotonNetwork.GetPhotonView(viewID).transform;
-        Debug.Log("Make visible: " + makeVisible);
         for(int i = 0; i < thisTransform.childCount; i++)
         {
             //Debug.Log("Child count: " + thisTransform.childCount);

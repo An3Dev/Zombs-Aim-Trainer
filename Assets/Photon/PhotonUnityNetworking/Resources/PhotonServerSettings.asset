@@ -45,6 +45,8 @@ MonoBehaviour:
   - SpawnBullet
   - StartSpawn
   - SwitchToWeapon
+  - DestroySelf
+  - RestartGame
   DisableAutoOpenWizard: 1
   ShowSettings: 1
   DevRegionSetOnce: 1

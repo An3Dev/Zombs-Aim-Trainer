@@ -8,7 +8,7 @@ public class WallHealth : MonoBehaviour, IDamageable<float, GameObject>
 
     public WallType wallType = WallType.Wood;
 
-    int[] wallHealth = { 100, 150, 300, 100, 2500 };
+    int[] wallHealth = { 100, 150, 300, 100, 1500 };
 
     int maxHealth;
 
@@ -29,7 +29,7 @@ public class WallHealth : MonoBehaviour, IDamageable<float, GameObject>
     public void Damage(float damageTaken, GameObject manager)
     {
         currentHealth -= Mathf.FloorToInt(damageTaken);
-        Debug.Log(transform.name + " health: " + currentHealth);
+        //Debug.Log(transform.name + " health: " + currentHealth);
         CheckHealth();
         ChangeWallAppearance(currentHealth, transform);
     }
@@ -78,12 +78,20 @@ public class WallHealth : MonoBehaviour, IDamageable<float, GameObject>
             if (!PhotonNetwork.OfflineMode)
             {
                 PhotonNetwork.Destroy(gameObject);
+
+                //photonView.RPC("DestroySelf", RpcTarget.AllBuffered);
             } else
             {
                 Destroy(transform.root.gameObject);
                 Debug.Log("Destroy");
             }
         }
+    }
+
+    [PunRPC]
+    void DestroySelf()
+    {
+        Destroy(gameObject);
     }
 
     // Update is called once per frame

@@ -7,6 +7,7 @@ using TMPro;
 using System;
 using Photon.Realtime;
 using UnityEngine.UI;
+using Photon.Pun.UtilityScripts;
 
 public class Movement : MonoBehaviour
 {
@@ -63,16 +64,14 @@ public class Movement : MonoBehaviour
         Instance = this;
         photonView = GetComponent<PhotonView>();
 
-        mainCamera = Camera.main;
-
-        if(!photonView.IsMine && !An3Apps.GameManager.testMode)
+        if (!photonView.IsMine && !An3Apps.GameManager.testMode)
         {
-            //Destroy(buildingScript);
-            //Destroy(GetComponent<Movement>());
-            //Destroy(editingScript);
-            //buildingScript.enabled = false;
-            //editingScript.GetComponent<Editing>().enabled = false;
+            return;
         }
+
+        Debug.Log(photonView.ViewID + " Is Mine in awake");
+
+        mainCamera = Camera.main;
 
         editWall = GameObject.Find("EditWall");
         leftEdit = GameObject.Find("LeftEdit");
@@ -94,6 +93,36 @@ public class Movement : MonoBehaviour
 
         cursorHotspot = new Vector2(cursorTexture.width / 2, cursorTexture.height / 2);
         Cursor.SetCursor(cursorTexture, cursorHotspot, CursorMode.Auto);
+
+        totalAmmoList = new List<int>();
+        currentBulletsInMagList = new List<int>();
+        //SetAmmo(true, 0, 0);
+    }
+
+    // Start is called before the first frame update
+    void Start()
+    {
+        wallPreview = GameObject.Find("WallPreview");
+        wallPreview.SetActive(false);
+
+        mainCamera = Camera.main;
+
+        killsText = GameObject.Find("KillsText").GetComponent<TextMeshProUGUI>();
+
+
+        totalAmmoList = new List<int>();
+        currentBulletsInMagList = new List<int>();
+
+        currentItem = inventory.SelectItem(0);
+        Debug.Log(inventory.itemsInInventory.Count);
+
+        SwitchToWeapon(currentItem.name);
+        photonView.RPC("SwitchToWeapon", RpcTarget.AllBuffered, currentItem.name);
+
+        if (!photonView.IsMine)
+        {
+            return;
+        }
     }
 
     Transform GetChildByName(string name, Transform parent)
@@ -108,28 +137,7 @@ public class Movement : MonoBehaviour
         return null;
     }
 
-    // Start is called before the first frame update
-    void Start()
-    {
-        //photonView = GetComponent<PhotonView>();
-        mainCamera = Camera.main;
-
-        wallPreview = GameObject.Find("WallPreview");
-        wallPreview.SetActive(false);
-        killsText = GameObject.Find("KillsText").GetComponent<TextMeshProUGUI>();
-
-        currentItem = inventory.SelectItem(0);
-
-        totalAmmoList = new List<int>();
-        currentBulletsInMagList = new List<int>();
-
-        SetAmmo(true, 0, 0);
-
-        SwitchToWeapon(currentItem.name);
-        photonView.RPC("SwitchToWeapon", RpcTarget.AllBuffered, currentItem.name);
-
-        
-    }
+    
 
     // Update is called once per frame
     void Update()
@@ -373,23 +381,6 @@ public class Movement : MonoBehaviour
         }
         
     }
-
-    //[PunRPC]
-    //void SwitchtoWeapon(Item currentItem)
-    //{
-    //    SwitchStates(PlayerState.Weapon);
-
-    //    Debug.Log(currentItem);
-
-    //    // set stats.
-    //    SetStats(currentItem);
-
-    //    // Show item.
-    //    gunRenderer.sprite = currentItem.topViewSprite;
-
-    //    // reset time since last shot;
-    //    lastTimeShot = Time.timeSinceLevelLoad - timeBetweenShots;
-    //}
 
     void SwitchStates(PlayerState stateToChangeTo)
     {
@@ -674,18 +665,21 @@ public class Movement : MonoBehaviour
     TextMeshProUGUI totalAmmoText, currentBulletsInMagText;
     Image reloadCircle;
 
+    int amountOfBulletsShot = 1;
+
     bool isReloading = false;
 
     public void IncreaseKills(int amount)
     {
         kills += amount;
         killsText.text = kills.ToString();
+        // Add score
+        photonView.Owner.AddScore(1);
     }
 
+    // Sets the ammo count of all the weapons. Also swaps ammo when weapons are moved in the inventory
     public void SetAmmo(bool setToMax, int from, int to)
     {
-
-        
         // if want to set the ammo to its default staring ammo.
         if (setToMax)
         {
@@ -697,8 +691,6 @@ public class Movement : MonoBehaviour
                 currentBulletsInMagList.Insert(i, inventory.itemsInInventory[i].magazineSize);
             }
             SwitchToWeapon(currentItem.name);
-            Debug.Log("Set ammo");
-            Debug.Log(totalBulletsAvailable);
         }
         else
         {
@@ -728,19 +720,25 @@ public class Movement : MonoBehaviour
     [PunRPC]
     void SwitchToWeapon(string currentItem)
     {
-        SwitchStates(PlayerState.Weapon);
-
         Item thisItem = Resources.Load("Guns/" + currentItem) as Item;
 
-        // set stats.
+        // Show item.
+        gunRenderer.sprite = thisItem.topViewSprite;
+
+
+        if (!photonView.IsMine)
+        {
+            return;
+        }
+
+        SwitchStates(PlayerState.Weapon);
         SetStats(thisItem);
 
         StopCoroutine("StartReload");
         StopCoroutine("ReloadAnimation");
         reloadCircle.gameObject.SetActive(false);
 
-        // Show item.
-        gunRenderer.sprite = thisItem.topViewSprite;
+       
 
         // reset time since last shot;
         lastTimeShot = Time.timeSinceLevelLoad - timeBetweenShots;
@@ -753,6 +751,7 @@ public class Movement : MonoBehaviour
         bulletDamage = item.damage;
         bulletSprite = item.bulletSprite;
         reloadTime = item.reloadTime;
+        amountOfBulletsShot = item.bulletsShotAtOnce;
 
         // if not in offline mode, check if photon view is mine. If in offline mode, if statement is true.
         if (!PhotonNetwork.OfflineMode ? photonView.IsMine : 1==1)
@@ -766,7 +765,7 @@ public class Movement : MonoBehaviour
 
     void Reload()
     {
-        if (totalBulletsAvailable < currentItem.magazineSize || currentBulletsInMag >= currentItem.magazineSize)
+        if (currentBulletsInMag >= currentItem.magazineSize)
         {
             Debug.Log("No ammo");
             return;
@@ -819,9 +818,16 @@ public class Movement : MonoBehaviour
             mouseWorldPos = new Vector3(mouseWorldPos.x, mouseWorldPos.y, 0);
             Vector3 direction = (mouseWorldPos - bulletOrigin.position).normalized;
 
+            float maxAngle = 70;
+
+
             if (PhotonNetwork.OfflineMode)
             {
-                SpawnBullet(bulletOrigin.position, direction, bulletSpeed, bulletDamage, currentItem.timeBeforeDestroy);
+                for(int i = 0; i < amountOfBulletsShot; i++)
+                {
+                    //Vector3 angle = 
+                    SpawnBullet(bulletOrigin.position, direction, bulletSpeed, bulletDamage, currentItem.timeBeforeDestroy);
+                }
             } else
             {
                 try
@@ -865,8 +871,12 @@ public class Movement : MonoBehaviour
 
         if (!PhotonNetwork.OfflineMode)
         {
+            //bullet.SendMessage("AssignParent", photonView.ViewID);
+ 
             bullet.SendMessage("AssignParent", photonView.ViewID);
-        } else
+
+        }
+        else
         {
             bullet.SendMessage("AssignParentTransform", transform.root);
         }

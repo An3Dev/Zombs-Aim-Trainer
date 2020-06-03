@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using Photon.Pun;
+using TMPro;
 public class Bullet : MonoBehaviour
 {
 
@@ -13,10 +14,14 @@ public class Bullet : MonoBehaviour
 
     PhotonView bulletShooter;
     Transform bulletShooterTransform;
+    GameObject canvas;
+
+    Camera mainCamera;
     // Start is called before the first frame update
     void Start()
     {
-
+        canvas = GameObject.Find("Canvas");
+        mainCamera = Camera.main;
     }
 
     // Update is called once per frame
@@ -73,21 +78,19 @@ public class Bullet : MonoBehaviour
         // if the collider has a damageable script, and if bullet isn't hitting itself.
         if (collider.transform.root.GetComponent<IDamageable<float, GameObject>>() != null && (!PhotonNetwork.OfflineMode ? bulletShooter.ViewID != collider.transform.root.GetComponent<PhotonView>().ViewID : bulletShooterTransform.root != collider.transform.root))
         {
+
             //Debug.Log("Collider ViewID: " + collider.transform.root.GetComponent<PhotonView>().ViewID + " Bullet Shooter View ID: " + bulletShooter.ViewID);
             try
             {
                 collider.transform.root.GetComponent<IDamageable<float, GameObject>>().Damage(damage, bulletShooter.gameObject);
-                
-                //if (bulletShooter.GetComponent<PhotonView>().IsMine)
-                //{
-                //    bulletShooter.gameObject.SendMessage("IncreaseKills", 1);
-                //    Debug.Log("Killed someone");
-                //}             
+
             }
             catch
             {
                 collider.transform.root.GetComponent<IDamageable<float, GameObject>>().Damage(damage, bulletShooterTransform.gameObject);
             }
+
+            // Add text that says damage
 
             GameObject effect = Instantiate(effectPrefab, collisionPoint, Quaternion.identity);
             Destroy(effect, 3);
