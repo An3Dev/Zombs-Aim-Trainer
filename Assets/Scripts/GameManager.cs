@@ -14,7 +14,7 @@ namespace An3Apps
     {
         public static GameManager Instance;
 
-        public static bool testMode = true;
+        public static bool testMode = false;
 
         [SerializeField] GameObject map;
 

@@ -113,13 +113,16 @@ public class Movement : MonoBehaviour
 
         currentItem = inventory.SelectItem(0);
         SetAmmo(true, 0, 0);
-        SwitchToWeapon(currentItem.name);
 
-        if (!PhotonNetwork.OfflineMode && !photonView.IsMine || PhotonNetwork.OfflineMode)
+        if (!PhotonNetwork.OfflineMode)
         {
-            return;
+            photonView.RPC("SwitchToWeapon", RpcTarget.AllBuffered, currentItem.name);
+
+        } else
+        {
+            SwitchToWeapon(currentItem.name);
+
         }
-        photonView.RPC("SwitchToWeapon", RpcTarget.AllBuffered, currentItem.name);
     }
 
     Transform GetChildByName(string name, Transform parent)
@@ -408,7 +411,6 @@ public class Movement : MonoBehaviour
             StartBuilding();
             gunRenderer.transform.GetComponent<BoxCollider2D>().enabled = false;
             lastState = PlayerState.Building;
-
         }
         else if (stateToChangeTo == PlayerState.Editing)
         {
@@ -738,7 +740,7 @@ public class Movement : MonoBehaviour
        
 
         // reset time since last shot;
-        lastTimeShot = Time.timeSinceLevelLoad - timeBetweenShots;
+        //lastTimeShot = Time.timeSinceLevelLoad - timeBetweenShots;
     }
 
     void SetStats(Item item)
@@ -900,6 +902,7 @@ public class Movement : MonoBehaviour
         GameObject bullet = Instantiate(bulletPrefab, location, Quaternion.identity);
         //Debug.Log("Bullet script: " + bullet.GetComponent<Bullet>());
         bullet.GetComponent<Bullet>().SetStats(speedOfBullet, damageOfBullet, timeBeforeDestroy);
+        Debug.Log("Damage from Movement " + damageOfBullet);
         bullet.GetComponent<SpriteRenderer>().sprite = bulletSprite;
         bullet.transform.up = direction;
 
