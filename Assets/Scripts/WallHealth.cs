@@ -16,7 +16,7 @@ public class WallHealth : MonoBehaviour, IDamageable<float, GameObject>
 
     PhotonView photonView;
 
-    float minimumTransparency = 0.2f;
+    float minimumTransparency = 0.1f;
 
     private void Awake()
     {
@@ -77,9 +77,9 @@ public class WallHealth : MonoBehaviour, IDamageable<float, GameObject>
             //photonView.gameObject.SetActive(false);
             if (!PhotonNetwork.OfflineMode)
             {
-                PhotonNetwork.Destroy(gameObject);
-
-                //photonView.RPC("DestroySelf", RpcTarget.AllBuffered);
+                
+                photonView.RPC("DestroySelf", RpcTarget.AllBuffered);
+                
             } else
             {
                 Destroy(transform.root.gameObject);

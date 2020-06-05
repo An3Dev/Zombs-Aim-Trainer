@@ -21,7 +21,7 @@ MonoBehaviour:
   bulletSprite: {fileID: -8066071280506718740, guid: 037e7cbca5e351343818ca3bfca97f80,
     type: 3}
   timeBetweenShots: 0.1
-  damage: 25
+  damage: 20
   reloadTime: 1.2
   magazineSize: 40
   bloomAmount: 30

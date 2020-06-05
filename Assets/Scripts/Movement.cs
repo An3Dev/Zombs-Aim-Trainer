@@ -39,9 +39,10 @@ public class Movement : MonoBehaviour
 
     Inventory inventory;
 
-    Sprite buildingSprite, editingSprite;
+    [SerializeField]Sprite buildingSprite, editingSprite;
 
     PlayerState lastState;
+
 
     [Space]
 
@@ -57,6 +58,14 @@ public class Movement : MonoBehaviour
 
     TextMeshProUGUI reloadCircleText;
 
+    List<float> materialCountList;
+    int maxMaterials = 15;
+    int currentMaterial = 0;
+
+    PlayerHealth playerHealth;
+
+    [SerializeField] GameObject woodWallPrefab, brickWallPrefab, metalWallPrefab;
+
     // Start is called before the first frame update
     void Awake()
     {
@@ -66,6 +75,8 @@ public class Movement : MonoBehaviour
         Instance = this;
         photonView = GetComponent<PhotonView>();
 
+
+        materialCountList = new List<float>();
         if (!PhotonNetwork.OfflineMode && !photonView.IsMine)
         {
             return;
@@ -98,6 +109,9 @@ public class Movement : MonoBehaviour
 
         totalAmmoList = new List<int>();
         currentBulletsInMagList = new List<int>();
+
+        playerHealth = GetComponent<PlayerHealth>();
+
         //SetAmmo(true, 0, 0);
     }
 
@@ -117,11 +131,9 @@ public class Movement : MonoBehaviour
         if (!PhotonNetwork.OfflineMode)
         {
             photonView.RPC("SwitchToWeapon", RpcTarget.AllBuffered, currentItem.name);
-
         } else
         {
             SwitchToWeapon(currentItem.name);
-
         }
     }
 
@@ -136,9 +148,7 @@ public class Movement : MonoBehaviour
         }
         return null;
     }
-
     
-
     // Update is called once per frame
     void Update()
     {
@@ -150,9 +160,7 @@ public class Movement : MonoBehaviour
         xMovement = Input.GetAxis("Horizontal");
         yMovement = Input.GetAxis("Vertical");
 
-
-        //transform.Translate((transform.position + force) * speed * Time.deltaTime);
-
+        //transform.Translate((transform.position + force) * speed * Time.deltaTime);s
 
         //transform.position += force * speed * Time.deltaTime;
         //transform.position = new Vector3(Mathf.Clamp(transform.position.x, -10, 10), Mathf.Clamp(transform.position.y, -5, 5));
@@ -160,6 +168,7 @@ public class Movement : MonoBehaviour
 
         if (Input.GetMouseButton(0))
         {
+
             if (playerState == PlayerState.Weapon)
             {
                 StopBuilding();
@@ -221,37 +230,47 @@ public class Movement : MonoBehaviour
             }
         }
 
-        if (isEditingWall)
+        // right click
+        if (Input.GetMouseButtonDown(1))
         {
-            if (Input.GetMouseButtonUp(0))
+            // Reset the edit
+            if (isEditingWall)
+            {
+                lastEdited = "";
+                leftEdit.SetActive(true);
+                leftEditPress.SetActive(false);
+                rightEdit.SetActive(true);
+                rightEditPress.SetActive(false);
+            }
+            else if (playerState == PlayerState.Building) // if in build mode, cycle through the materials
+            {
+                SwitchMaterials(-1);
+            }
+
+        }
+
+        if (Input.GetMouseButtonUp(1))
+        {
+            if (isEditingWall)
+            {
+                if (resetOnRelease)
+                {
+                    Confirm();
+                }
+            }         
+        }
+
+        if (Input.GetMouseButtonUp(0))
+        {
+            if (isEditingWall)
             {
                 lastEdited = "";
                 if (editOnRelease)
                 {
                     Confirm();
                 }
-
             }
-            // right click
-            if (Input.GetMouseButton(1))
-            {
-
-                lastEdited = "";
-                leftEdit.SetActive(true);
-                leftEditPress.SetActive(false);
-                rightEdit.SetActive(true);
-                rightEditPress.SetActive(false);
-
-            }
-
-            if (Input.GetMouseButtonUp(1))
-            {
-                if (resetOnRelease)
-                {
-                    Confirm();
-                }
-            }
-        } 
+        }
 
         if (Input.GetKeyDown(KeyCode.Q))
         {
@@ -430,17 +449,6 @@ public class Movement : MonoBehaviour
 
     #region movement code
 
-
-    //void StartBuilding()
-    //{
-    //    buildingScript.StartBuilding();
-    //}
-
-    //void CancelEdit()
-    //{
-    //    Editing.Instance.CancelEdit();
-    //}
-
     public void FixedUpdate()
     {
         Vector3 force = new Vector3(xMovement, yMovement);
@@ -516,6 +524,28 @@ public class Movement : MonoBehaviour
         wallsList.Append(wall);
     }
 
+    GameObject GetWallPrefab(int indexOfMaterial)
+    {
+        GameObject wall;
+
+        switch (indexOfMaterial)
+        {
+            case 0:
+                wall = woodWallPrefab;
+                break;
+            case 1:
+                wall = brickWallPrefab;
+                break;
+            case 2:
+                wall = metalWallPrefab;
+                break;
+            default:
+                wall = woodWallPrefab;
+                break;
+        }
+        return wall;
+    }
+
     public void FindWallInArray(GameObject gameObject)
     {
         int index = 0;
@@ -531,6 +561,33 @@ public class Movement : MonoBehaviour
         Debug.Log(wallsList[index].transform.position);
     }
 
+    void SwitchMaterials(int index)
+    {
+        if (index > -1)
+        {
+            currentMaterial = index;      
+        } else
+        {
+            // cycle through materials;
+            if (currentMaterial == materialCountList.Count - 1)
+            {
+                currentMaterial = 0;
+            }
+            else
+            {
+                currentMaterial++;
+            }
+        }
+
+        GameObject wall = GetWallPrefab(currentMaterial);
+
+        // renderer of wall preview
+        SpriteRenderer wallPreviewRenderer = wallPreview.GetComponent<SpriteRenderer>();
+        SpriteRenderer wallRenderer = wall.GetComponentInChildren<SpriteRenderer>();
+        wallPreviewRenderer.sprite = wallRenderer.sprite;
+        wallPreviewRenderer.color = new Color(wallRenderer.color.r, wallRenderer.color.g, wallRenderer.color.b, wallPreviewRenderer.color.a);
+    }
+
     public void PlaceWall()
     {
         if (Physics2D.OverlapPoint(tempWallPosition, buildsMask))
@@ -538,17 +595,37 @@ public class Movement : MonoBehaviour
             return;
         }
 
-        if (!PhotonNetwork.OfflineMode)
+        // if the slot has mats switch index to that material
+        if (materialCountList[currentMaterial] < 1)
         {
-            PhotonNetwork.Instantiate("Wall", tempWallPosition, tempWallRotation);
-        } else
-        {
-            Instantiate(wallPrefab, tempWallPosition, tempWallRotation);
+            for(int i = 0; i < materialCountList.Count; i++)
+            {
+                if(materialCountList[i] > 0)
+                {
+                    SwitchMaterials(i);
+                }
+            }
         }
 
+        // if has materials
+        if (materialCountList[currentMaterial] > 0)
+        {
+            GameObject wall = GetWallPrefab(currentMaterial);
+             
+            if (!PhotonNetwork.OfflineMode)
+            {
+                PhotonNetwork.Instantiate(wall.name, tempWallPosition, tempWallRotation);
+            }
+            else
+            {
+                Instantiate(wall, tempWallPosition, tempWallRotation);
+            }
+
+            materialCountList[currentMaterial] -= 1;
+        }
+ 
         //Debug.Log(tempWallPosition);
     }
-
 
     Vector2 PositionWall()
     {
@@ -668,12 +745,17 @@ public class Movement : MonoBehaviour
 
     bool isReloading = false;
 
+    [SerializeField] float healthIncreasePerKill = 100;
+
     public void IncreaseKills(int amount)
     {
         kills += amount;
         killsText.text = kills.ToString();
         // Add score
         photonView.Owner.AddScore(1);
+
+        // give health, ammo, and materials
+        playerHealth.ReplenishHealth(healthIncreasePerKill);
     }
 
     // Sets the ammo count of all the weapons. Also swaps ammo when weapons are moved in the inventory
@@ -690,6 +772,12 @@ public class Movement : MonoBehaviour
                 currentBulletsInMagList.Insert(i, inventory.itemsInInventory[i].magazineSize);
             }
             SwitchToWeapon(currentItem.name);
+
+            materialCountList.Clear();
+            for(int i = 0; i < 3; i++)
+            {
+                materialCountList.Add(maxMaterials);
+            }
         }
         else
         {
@@ -804,7 +892,7 @@ public class Movement : MonoBehaviour
     {
         if (Time.timeSinceLevelLoad - lastTimeShot > timeBetweenShots)
         {
-            if (currentBulletsInMag <= 0)
+            if (currentBulletsInMag <= 0 && totalBulletsAvailable > 0)
             {
                 Debug.Log("No bullets in mag");
                 Reload();
@@ -902,7 +990,6 @@ public class Movement : MonoBehaviour
         GameObject bullet = Instantiate(bulletPrefab, location, Quaternion.identity);
         //Debug.Log("Bullet script: " + bullet.GetComponent<Bullet>());
         bullet.GetComponent<Bullet>().SetStats(speedOfBullet, damageOfBullet, timeBeforeDestroy);
-        Debug.Log("Damage from Movement " + damageOfBullet);
         bullet.GetComponent<SpriteRenderer>().sprite = bulletSprite;
         bullet.transform.up = direction;
 
@@ -954,10 +1041,8 @@ public class Movement : MonoBehaviour
 
     public bool Edit()
     {
-        Debug.Log("Edit");
         if (isEditingWall)
         {
-            Debug.Log("Confirm");
             isEditingWall = false;
 
             // confirm

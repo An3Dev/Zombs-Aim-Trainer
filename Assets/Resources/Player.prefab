@@ -524,7 +524,7 @@ SpriteRenderer:
   m_LightmapParameters: {fileID: 0}
   m_SortingLayerID: 0
   m_SortingLayer: 0
-  m_SortingOrder: 0
+  m_SortingOrder: -1
   m_Sprite: {fileID: -3450603936767109947, guid: 037e7cbca5e351343818ca3bfca97f80,
     type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
@@ -615,12 +615,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: cd389039ada99704a895cb66f04cc3d2, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  speed: 5
+  speed: 6
   mainCamera: {fileID: 0}
   playerState: 0
   isTraining: 0
   rb: {fileID: 7862168791663815579}
   photonView: {fileID: 0}
+  buildingSprite: {fileID: 21300000, guid: d176e6ad4acee144ca800b95ca711596, type: 3}
+  editingSprite: {fileID: 21300000, guid: 3d73081433a0adf49af3f24e941a28ce, type: 3}
   handsKeybinds: 9
   firstSlotKeybind: 49
   secondSlotKeybind: 50
@@ -630,6 +632,12 @@ MonoBehaviour:
   reloadKeybind: 114
   gunRenderer: {fileID: 6622199765515647137}
   cursorTexture: {fileID: 2800000, guid: 30a7d1ad9c6dff04eba3c27189a7e4e4, type: 3}
+  woodWallPrefab: {fileID: 9095002794806272711, guid: cee236a4249bffa4f97e81d6744aae7e,
+    type: 3}
+  brickWallPrefab: {fileID: 9095002794806272711, guid: d02dc9f36dfff2d4c901c02dd6c92d6c,
+    type: 3}
+  metalWallPrefab: {fileID: 9095002794806272711, guid: 7a03c51d5588a1749ba31325b5a170b4,
+    type: 3}
   wallPrefab: {fileID: 9095002794806272711, guid: cee236a4249bffa4f97e81d6744aae7e,
     type: 3}
   wallPreview: {fileID: 0}
@@ -643,6 +651,7 @@ MonoBehaviour:
   reloadTime: 4
   timesShot: 0
   killsText: {fileID: 0}
+  healthIncreasePerKill: 100
   editWall: {fileID: 0}
   leftEdit: {fileID: 0}
   rightEdit: {fileID: 0}
@@ -758,6 +767,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   currentHealth: 0
   currentShields: 0
+  damageTextPrefab: {fileID: 375094231577810256, guid: 0e76476f33b5426468b87489057d64fd,
+    type: 3}
+  damageText: {fileID: 375094231577810259, guid: 0e76476f33b5426468b87489057d64fd,
+    type: 3}
+  gameManager: {fileID: 0}
 --- !u!1 &7862168792113121304
 GameObject:
   m_ObjectHideFlags: 0

@@ -47,6 +47,7 @@ MonoBehaviour:
   - SwitchToWeapon
   - DestroySelf
   - RestartGame
+  - SpawnPlayer
   DisableAutoOpenWizard: 1
   ShowSettings: 1
   DevRegionSetOnce: 1

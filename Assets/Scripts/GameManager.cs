@@ -20,29 +20,68 @@ namespace An3Apps
 
         [SerializeField] TextMeshProUGUI pingText;
 
+        [SerializeField] GameObject spawnPointsContainer;
+
+        bool connected = false;
         // Start is called before the first frame update
         void Awake()
         {
             Instance = this;
+            
+        }
+
+        private void Start()
+        {
             if (testMode)
             {
                 PhotonNetwork.OfflineMode = true;
-                Instantiate(Resources.Load("Player"), Vector3.left * 8, Quaternion.identity);
+                //Instantiate(Resources.Load("Player"), Vector3.left * 8, Quaternion.identity);
+                SpawnPlayer(Random.Range(0, 3));
             }
             else if (!PhotonNetwork.IsConnectedAndReady)
             {
                 UnityEngine.SceneManagement.SceneManager.LoadScene("Lobby");
             }
 
-            if (PhotonNetwork.IsConnected && !testMode)
+            if (PhotonNetwork.IsConnectedAndReady && !testMode)
             {
-                PhotonNetwork.Instantiate("Player", Vector3.left * 8 + (Vector3.right * PhotonNetwork.CurrentRoom.PlayerCount * PhotonNetwork.LocalPlayer.GetPlayerNumber()), Quaternion.identity);
-
-                // Replace each map item with a photon network item.
+                connected = true;
+                if (PhotonNetwork.IsMasterClient)
+                {
+                    photonView.RPC("SpawnPlayer", RpcTarget.AllBuffered, Random.Range(0, 3));
+                    Debug.Log("Test");
+                }
             }
         }
 
+        [PunRPC]
+        public void SpawnPlayer(int shift)
+        {
+            Vector3 position = PositionPlayer(shift);
 
+            if (testMode)
+            {
+                Instantiate(Resources.Load("Player"), position, Quaternion.identity);
+            } else 
+            {
+                PhotonNetwork.Instantiate("Player", position, Quaternion.identity);
+                Debug.Log("Instantiated");
+            }
+        }
+
+        public Vector3 PositionPlayer(int shift)
+        {
+            int index = !PhotonNetwork.OfflineMode ? PhotonNetwork.LocalPlayer.ActorNumber : 0;
+
+            index += shift;
+
+            if (index > spawnPointsContainer.transform.childCount - 1)
+            {
+                index = 0;
+            }
+            Vector3 position = spawnPointsContainer.transform.GetChild(index).position;
+            return position;
+        }
 
         // Update is called once per frame
         void Update()

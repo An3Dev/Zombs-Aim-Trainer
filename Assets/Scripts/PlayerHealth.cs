@@ -1,11 +1,10 @@
-﻿using System;
-using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
+﻿using An3Apps;
 using Photon.Pun;
 using Photon.Pun.UtilityScripts;
+using System.Collections;
+using TMPro;
+using UnityEngine;
 using UnityEngine.UI;
-using ExitGames.Client.Photon;
 public class PlayerHealth : MonoBehaviour, IDamageable<float, GameObject>
 {
     public float currentHealth;
@@ -22,6 +21,12 @@ public class PlayerHealth : MonoBehaviour, IDamageable<float, GameObject>
     bool actedOnDeath = false;
 
     Movement movement;
+
+    [SerializeField] GameObject damageTextPrefab;
+    [SerializeField] TextMeshPro damageText;
+
+    [SerializeField]
+    GameManager gameManager;
     // Start is called before the first frame update
     void Start()
     {
@@ -29,20 +34,30 @@ public class PlayerHealth : MonoBehaviour, IDamageable<float, GameObject>
         currentShields = maxShields;
         photonView = GetComponent<PhotonView>();
 
+        gameManager = GameObject.Find("GameManager").GetComponent<GameManager>();
         if (!PhotonNetwork.OfflineMode)
         {
-            photonView.RPC("StartSpawn", RpcTarget.AllBuffered, 0f);
-        } else
-        {
-            StartSpawn(0);
+            //photonView.RPC("StartSpawn", RpcTarget.AllBuffered, 0f);
         }
+        else
+        {
+            //StartSpawn(0);
+        }
+
 
         shieldSlider = GameObject.Find("ShieldSlider").GetComponent<Slider>();
         healthSlider = GameObject.Find("HealthSlider").GetComponent<Slider>();
         //Spawn(0);
 
         movement = transform.root.GetComponent<Movement>();
-        
+        SetVariables();
+    }
+
+    public void ReplenishHealth(float amount)
+    {
+        currentShields = Mathf.Clamp(currentHealth + amount - maxHealth, 0, maxShields);
+
+        currentHealth = Mathf.Clamp(currentHealth + amount, 0, maxHealth);
     }
 
     // Update is called once per frame
@@ -65,33 +80,27 @@ public class PlayerHealth : MonoBehaviour, IDamageable<float, GameObject>
     {
         shieldSlider.value = currentShields / maxShields;
         healthSlider.value = currentHealth / maxHealth;
-        
+
     }
 
     IEnumerator Spawn(float time)
     {
         yield return new WaitForSeconds(time);
-        currentHealth = maxHealth;
-        currentShields = maxShields;
 
-        if(photonView.IsMine)
-        {
-            RefreshSliders();
-            movement.SetAmmo(true, 0, 0);
-        }
-
+        SetVariables();
         transform.GetComponent<Movement>().enabled = true;
 
-        
+
         if (!PhotonNetwork.OfflineMode)
         {
             photonView.RPC("MakeVisible", RpcTarget.AllBuffered, true, photonView.ViewID);
-            transform.position = (Vector3.left * 8 + (Vector3.right * PhotonNetwork.CurrentRoom.PlayerCount * PhotonNetwork.LocalPlayer.GetPlayerNumber()));
+            //transform.position = (Vector3.left * 8 + (Vector3.right * PhotonNetwork.CurrentRoom.PlayerCount * PhotonNetwork.LocalPlayer.GetPlayerNumber()));
+            transform.position = gameManager.PositionPlayer(Random.Range(0, 3));
         }
         else
         {
             MakeVisibleByTransform(true, transform);
-            transform.position = Vector3.left * 8;
+            transform.position = gameManager.PositionPlayer(Random.Range(0, 3));
         }
 
         actedOnDeath = false;
@@ -99,15 +108,49 @@ public class PlayerHealth : MonoBehaviour, IDamageable<float, GameObject>
         StopCoroutine("Spawn");
     }
 
+    void SetVariables()
+    {
+        currentHealth = maxHealth;
+        currentShields = maxShields;
+
+        if (photonView.IsMine)
+        {
+            RefreshSliders();
+            movement.SetAmmo(true, 0, 0);
+        }
+    }
+
     public void Damage(float damageTaken, GameObject damager)
     {
+
+        GameObject damageTextGO = Instantiate(damageTextPrefab, transform.position, Quaternion.identity);
+        TextMeshPro text = damageTextGO.GetComponent<TextMeshPro>();
+        text.text = damageTaken.ToString();
         if (currentShields <= 0)
         {
             currentHealth -= damageTaken;
-        } else
-        {
-            currentShields -= damageTaken;
+            text.color = Color.white;
         }
+        else
+        {
+            // if damage penetrates the shield and goes to health
+            if (currentShields - damageTaken < 0)
+            {
+                currentHealth -= damageTaken - currentShields;
+                currentShields = 0;
+            } else
+            {
+                currentShields -= damageTaken;
+            }
+            text.color = Color.blue;
+        }
+
+
+
+        Vector3 randomDirection = new Vector2(UnityEngine.Random.Range(-1f, 1f), UnityEngine.Random.Range(-1f, 1f));
+        damageTextGO.transform.LeanMove(transform.position + randomDirection * 2, 1);
+
+        Destroy(damageTextGO, 1);
 
         if (photonView.IsMine)
         {
@@ -116,7 +159,7 @@ public class PlayerHealth : MonoBehaviour, IDamageable<float, GameObject>
 
         if (Died())
         {
-            if(damager.GetComponent<PhotonView>().IsMine && !An3Apps.GameManager.testMode)
+            if (damager.GetComponent<PhotonView>().IsMine && !An3Apps.GameManager.testMode)
             {
                 damager.SendMessage("IncreaseKills", 1);
             }
@@ -128,7 +171,6 @@ public class PlayerHealth : MonoBehaviour, IDamageable<float, GameObject>
                 Debug.Log("Deaths: " + deaths);
             }
         }
-
     }
 
     private bool Died()
@@ -140,8 +182,8 @@ public class PlayerHealth : MonoBehaviour, IDamageable<float, GameObject>
             if (!PhotonNetwork.OfflineMode)
             {
                 photonView.RPC("Die", RpcTarget.AllBuffered);
-
-            } else
+            }
+            else
             {
                 Die();
             }
@@ -154,7 +196,7 @@ public class PlayerHealth : MonoBehaviour, IDamageable<float, GameObject>
     void MakeVisible(bool makeVisible, int viewID)
     {
         Transform thisTransform = PhotonNetwork.GetPhotonView(viewID).transform;
-        for(int i = 0; i < thisTransform.childCount; i++)
+        for (int i = 0; i < thisTransform.childCount; i++)
         {
             //Debug.Log("Child count: " + thisTransform.childCount);
             // if the child has a sprite renderer and its state is not what it should be
@@ -204,13 +246,14 @@ public class PlayerHealth : MonoBehaviour, IDamageable<float, GameObject>
             transform.root.GetComponent<Movement>().enabled = false;
 
             photonView.RPC("StartSpawn", RpcTarget.AllBuffered, 3f);
-        } else
+        }
+        else
         {
             MakeVisibleByTransform(false, transform);
             transform.root.GetComponent<Movement>().enabled = false;
 
             StartSpawn(3);
         }
-        
+
     }
 }

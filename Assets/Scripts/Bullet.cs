@@ -46,8 +46,6 @@ public class Bullet : MonoBehaviour
         speed = setSpeed;
         damage = setDamage;
 
-        Debug.Log("Damage from bullet " + damage);
-
         Destroy(gameObject, timeBeforeDestroyed);
     }
 
@@ -93,18 +91,6 @@ public class Bullet : MonoBehaviour
                 collider.transform.root.GetComponent<IDamageable<float, GameObject>>().Damage(damage, bulletShooterTransform.gameObject);
             }
 
-            // Add text that says damage
-            GameObject damageText = Instantiate(damageTextPrefab, collisionPoint, Quaternion.identity);
-            Debug.Log("Damage before set text " + damage.ToString());
-            damageText.GetComponent<TextMeshPro>().text = damage.ToString();
-            Debug.Log("Damage after set text " + damage);
-
-            Vector3 randomDirection = new Vector2(Random.Range(-1f, 1f), Random.Range(-1f, 1f));
-            damageText.transform.LeanMove(transform.position + randomDirection * 2, 1);
-            //damageText.LeanAlpha(0, 1);
-
-
-            Destroy(damageText, 1);
             GameObject effect = Instantiate(effectPrefab, collisionPoint, Quaternion.identity);
             Destroy(effect, 3);
             Destroy(gameObject);
