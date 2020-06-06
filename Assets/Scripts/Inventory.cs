@@ -2,7 +2,8 @@
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
-
+using TMPro;
+using UnityEngine.UI;
 public class Inventory : MonoBehaviour
 {
 
@@ -12,12 +13,22 @@ public class Inventory : MonoBehaviour
 
     public Item P90, Sniper, Scar, Shotgun;
 
+    Transform inventoryLayoutGroup;
+    Movement movementScript;
     private void Awake()
     {
+        inventoryLayoutGroup = GameObject.Find("InventoryLayoutGroup").transform;
+
+        movementScript = transform.root.GetComponent<Movement>();
         AddItem(P90);
-        AddItem(Sniper);
         AddItem(Scar);
         AddItem(Shotgun);
+        AddItem(Sniper);       
+
+        SelectItem(0);
+        movementScript.SetAmmo(true, 0, 0);
+
+        AssignItemUI();
     }
     private void Start()
     {
@@ -40,8 +51,55 @@ public class Inventory : MonoBehaviour
         itemsInInventory.Add(item);
     }
 
-    public Item SelectItem(int index)
+    void AssignItemUI()
     {
+        for(int i = 0; i < inventoryLayoutGroup.childCount; i++)
+        {
+            Transform itemNameText = inventoryLayoutGroup.GetChild(i).Find("ItemNameText");
+            Transform image = inventoryLayoutGroup.GetChild(i).Find("ItemImage");
+            Transform ammoText = inventoryLayoutGroup.GetChild(i).Find("AmmoText");
+
+            // if there is an extra slot, make everything blank
+            if (i == itemsInInventory.Count)
+            {
+                itemNameText.GetComponent<TextMeshProUGUI>().text = "";
+                image.GetComponent<Image>().sprite = null;
+                ammoText.GetComponent<TextMeshProUGUI>().text = "";
+                return;
+            }
+
+            itemNameText.GetComponent<TextMeshProUGUI>().text = itemsInInventory[i].itemName;            
+            image.GetComponent<Image>().sprite = itemsInInventory[i].topViewSprite;
+            // Gets the index of the current item.
+            ammoText.GetComponent<TextMeshProUGUI>().text = movementScript.totalAmmoList[GetItemIndex(itemsInInventory[i])].ToString();
+        }
+    }
+
+    public void UpdateAmmo(int index, int totalAmmo)
+    {
+        inventoryLayoutGroup.GetChild(index).Find("AmmoText").GetComponent<TextMeshProUGUI>().text = totalAmmo.ToString();
+    }
+
+    public Item SelectItem(int index)
+    { 
+        // if the index is not accessible
+        if (index >= itemsInInventory.Count)
+        {
+            if (selectedItem != null)
+            {
+                return selectedItem;
+            }
+            else
+            {
+                return itemsInInventory[0];
+            }
+        }
+
+        if (selectedItem != null) {
+            inventoryLayoutGroup.GetChild(GetItemIndex(selectedItem)).GetComponent<RectTransform>().sizeDelta = new Vector2(100, 100);
+            //inventoryLayoutGroup.GetChild(GetItemIndex(selectedItem)).GetComponent<RectTransform>().SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, 100);
+        }
+
         if (index < itemsInInventory.Count)
         {
             selectedItem = itemsInInventory[index];
@@ -50,6 +108,11 @@ public class Inventory : MonoBehaviour
         {
             selectedItem = itemsInInventory[0];
         }
+
+        inventoryLayoutGroup.GetChild(index).GetComponent<RectTransform>().sizeDelta = new Vector2(115, 115);
+        //inventoryLayoutGroup.GetChild(GetItemIndex(selectedItem)).GetComponent<RectTransform>().SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, 125);
+
+
         return selectedItem;
     }
 

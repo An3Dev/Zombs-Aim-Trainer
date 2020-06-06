@@ -53,11 +53,32 @@ public class PlayerHealth : MonoBehaviour, IDamageable<float, GameObject>
         SetVariables();
     }
 
-    public void ReplenishHealth(float amount)
+    public bool ReplenishHealth(float amount, int healthShieldsOrBoth)
     {
-        currentShields = Mathf.Clamp(currentHealth + amount - maxHealth, 0, maxShields);
+        Debug.Log("Replenish");
+        if (healthShieldsOrBoth == 2)
+        {
+            currentShields = Mathf.Clamp(currentHealth + amount - maxHealth, 0, maxShields);
 
-        currentHealth = Mathf.Clamp(currentHealth + amount, 0, maxHealth);
+            currentHealth = Mathf.Clamp(currentHealth + amount, 0, maxHealth);
+        } else if (healthShieldsOrBoth == 1)
+        {
+            if (currentShields == maxHealth)
+            {
+                return false;
+            }
+            currentShields = Mathf.Clamp(currentShields + amount, 0, maxShields);
+        } else if (healthShieldsOrBoth == 0)
+        {
+            if (currentHealth == maxHealth)
+            {
+                return false;
+            }
+            currentHealth = Mathf.Clamp(currentHealth + amount, 0, maxHealth);
+        }
+
+        RefreshSliders();
+        return true;
     }
 
     // Update is called once per frame

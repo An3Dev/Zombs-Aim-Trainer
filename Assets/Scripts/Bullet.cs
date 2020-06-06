@@ -96,6 +96,23 @@ public class Bullet : MonoBehaviour
             Destroy(gameObject);
             return;
         }
+
+
+        if (collider.transform.root.GetComponent<PhotonView>() == null)
+        {
+            GameObject effect = Instantiate(effectPrefab, collisionPoint, Quaternion.identity);
+            Destroy(effect, 3);
+            Destroy(gameObject);
+            return;
+        }
+
+        //// if the collider isn't the bullet itself or its shooter, just destroy itself      
+        if ((!PhotonNetwork.OfflineMode ? bulletShooter.ViewID != collider.transform.root.GetComponent<PhotonView>().ViewID : bulletShooterTransform.root != collider.transform.root))
+        {
+            GameObject effect = Instantiate(effectPrefab, collisionPoint, Quaternion.identity);
+            Destroy(effect, 3);
+            Destroy(gameObject);
+        }
     }
 
     [PunRPC]

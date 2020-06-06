@@ -8,7 +8,7 @@ using System;
 using Photon.Realtime;
 using UnityEngine.UI;
 using Photon.Pun.UtilityScripts;
-
+using UnityEngine.EventSystems;
 public class Movement : MonoBehaviour
 {
 
@@ -43,7 +43,6 @@ public class Movement : MonoBehaviour
 
     PlayerState lastState;
 
-
     [Space]
 
     public KeyCode handsKeybinds = KeyCode.Tab, firstSlotKeybind = KeyCode.Alpha1, secondSlotKeybind = KeyCode.Alpha2, thirdSlotKeybind = KeyCode.Alpha3,
@@ -59,13 +58,14 @@ public class Movement : MonoBehaviour
     TextMeshProUGUI reloadCircleText;
 
     List<float> materialCountList;
-    int maxMaterials = 15;
+    int maxMaterials = 10;
     int currentMaterial = 0;
 
     PlayerHealth playerHealth;
 
     [SerializeField] GameObject woodWallPrefab, brickWallPrefab, metalWallPrefab;
 
+    [SerializeField] TextMeshProUGUI woodText, brickText, metalText;
     // Start is called before the first frame update
     void Awake()
     {
@@ -75,6 +75,11 @@ public class Movement : MonoBehaviour
         Instance = this;
         photonView = GetComponent<PhotonView>();
 
+        GameObject group = GameObject.Find("MaterialsGroup");
+
+        woodText = group.transform.GetChild(0).GetComponent<TextMeshProUGUI>();
+        brickText = group.transform.GetChild(1).GetComponent<TextMeshProUGUI>();
+        metalText = group.transform.GetChild(2).GetComponent<TextMeshProUGUI>();
 
         materialCountList = new List<float>();
         if (!PhotonNetwork.OfflineMode && !photonView.IsMine)
@@ -126,7 +131,6 @@ public class Movement : MonoBehaviour
         killsText = GameObject.Find("KillsText").GetComponent<TextMeshProUGUI>();
 
         currentItem = inventory.SelectItem(0);
-        SetAmmo(true, 0, 0);
 
         if (!PhotonNetwork.OfflineMode)
         {
@@ -168,12 +172,18 @@ public class Movement : MonoBehaviour
 
         if (Input.GetMouseButton(0))
         {
+            //foreach(RaycastResult result in GetEventSystemRaycastResults())
+            //{
+                
+            //}
 
-            if (playerState == PlayerState.Weapon)
+            if (playerState == PlayerState.Weapon) 
             {
-                StopBuilding();
-                TryShooting();
-                             
+                if (playerState == PlayerState.Building)
+                {
+                    StopBuilding();
+                }
+                TryShooting();                             
             }
             else if (playerState == PlayerState.Building)
             {
@@ -325,6 +335,18 @@ public class Movement : MonoBehaviour
             wallPreview.transform.rotation = tempWallRotation;
         }
 
+        if (Input.GetKeyDown(KeyCode.Delete))
+        {
+            if (PhotonNetwork.IsMasterClient)
+            {
+                for(int i = 0; i < wallsList.Length; i++)
+                {
+                    PhotonNetwork.Destroy(wallsList[i].gameObject);
+                }
+            }
+        }
+
+
         // Keybinds for weapons
 
         if (Input.GetKeyDown(firstSlotKeybind)) {
@@ -401,6 +423,33 @@ public class Movement : MonoBehaviour
         
     }
 
+    ///Returns 'true' if we touched or hovering on Unity UI element.
+    public static bool IsPointerOverUIElement()
+    {
+        return IsPointerOverUIElement(GetEventSystemRaycastResults());
+    }
+
+    ///Returns 'true' if we touched or hovering on Unity UI element.
+    public static bool IsPointerOverUIElement(List<RaycastResult> eventSystemRaysastResults)
+    {
+        for (int index = 0; index < eventSystemRaysastResults.Count; index++)
+        {
+            RaycastResult curRaysastResult = eventSystemRaysastResults[index];
+            if (curRaysastResult.gameObject.layer == LayerMask.NameToLayer("UI"))
+                return true;
+        }
+        return false;
+    }
+    ///Gets all event systen raycast results of current mouse or touch position.
+    static List<RaycastResult> GetEventSystemRaycastResults()
+    {
+        PointerEventData eventData = new PointerEventData(EventSystem.current);
+        eventData.position = Input.mousePosition;
+        List<RaycastResult> raycastResults = new List<RaycastResult>();
+        EventSystem.current.RaycastAll(eventData, raycastResults);
+        return raycastResults;
+    }
+
     void SwitchStates(PlayerState stateToChangeTo)
     {
         playerState = stateToChangeTo;
@@ -411,12 +460,16 @@ public class Movement : MonoBehaviour
             gunRenderer.transform.GetComponent<BoxCollider2D>().enabled = false;
             lastState = PlayerState.Building;
 
+            if (isEditingWall)
+            {
+                CancelEdit();
+            }
         }
         else if (stateToChangeTo == PlayerState.Editing)
         {
             gunRenderer.sprite = editingSprite;
             gunRenderer.transform.GetComponent<BoxCollider2D>().enabled = false;
-
+            //lastState = PlayerState.Editing;
         }
 
         if (!photonView.IsMine)
@@ -426,7 +479,12 @@ public class Movement : MonoBehaviour
         if (stateToChangeTo == PlayerState.Building)
         {
             gunRenderer.sprite = buildingSprite;
-            CancelEdit();        
+
+            if(isEditingWall)
+            {
+                CancelEdit();
+            }
+
             StartBuilding();
             gunRenderer.transform.GetComponent<BoxCollider2D>().enabled = false;
             lastState = PlayerState.Building;
@@ -434,13 +492,26 @@ public class Movement : MonoBehaviour
         else if (stateToChangeTo == PlayerState.Editing)
         {
             gunRenderer.sprite = editingSprite;
-            StopBuilding();
+
+            if (lastState == PlayerState.Editing)
+            {
+                StopBuilding();
+            }
+
             gunRenderer.transform.GetComponent<BoxCollider2D>().enabled = false;
+            //lastState = PlayerState.Editing;
             
         } else if (stateToChangeTo == PlayerState.Weapon)
         {
-            StopBuilding();
-            CancelEdit();
+            if (lastState == PlayerState.Building)
+            {
+                StopBuilding();
+            }
+            else if (isEditingWall)
+            {
+                CancelEdit();
+            }
+
             gunRenderer.transform.GetComponent<BoxCollider2D>().enabled = true;
             lastState = PlayerState.Weapon;
 
@@ -622,8 +693,13 @@ public class Movement : MonoBehaviour
             }
 
             materialCountList[currentMaterial] -= 1;
+
+            woodText.text = "Wood: " + materialCountList[0];
+            brickText.text = "Brick: " + materialCountList[1];
+            metalText.text = "Metal: " + materialCountList[2];
+
         }
- 
+
         //Debug.Log(tempWallPosition);
     }
 
@@ -729,10 +805,8 @@ public class Movement : MonoBehaviour
     int kills = 0;
     public TextMeshProUGUI killsText;
 
-    List<int> totalAmmoList;
-    List<int> currentBulletsInMagList;
-
-    float startingAmmoMultiplier = 3;
+    public List<int> totalAmmoList;
+    public List<int> currentBulletsInMagList;
 
     int totalBulletsAvailable;
     int currentBulletsInMag;
@@ -754,8 +828,23 @@ public class Movement : MonoBehaviour
         // Add score
         photonView.Owner.AddScore(1);
 
-        // give health, ammo, and materials
-        playerHealth.ReplenishHealth(healthIncreasePerKill);
+        // give health and materials
+        playerHealth.ReplenishHealth(healthIncreasePerKill, 2);
+
+        for(int i = 0; i < materialCountList.Count; i++)
+        {
+            if (materialCountList[i] + 5 > maxMaterials)
+            {
+                materialCountList[i] = maxMaterials;
+
+            } else
+            {
+                materialCountList[i] += 5;
+            }
+        }
+
+        SetAmmo(true, 0, 0);
+        SetMaterialUI();
     }
 
     // Sets the ammo count of all the weapons. Also swaps ammo when weapons are moved in the inventory
@@ -771,6 +860,11 @@ public class Movement : MonoBehaviour
                 totalAmmoList.Insert(i, (inventory.itemsInInventory[i].startingAmmo));
                 currentBulletsInMagList.Insert(i, inventory.itemsInInventory[i].magazineSize);
             }
+            if (currentItem == null)
+            {
+                currentItem = inventory.SelectItem(0);
+            }
+
             SwitchToWeapon(currentItem.name);
 
             materialCountList.Clear();
@@ -778,6 +872,7 @@ public class Movement : MonoBehaviour
             {
                 materialCountList.Add(maxMaterials);
             }
+            SetMaterialUI();
         }
         else
         {
@@ -804,6 +899,13 @@ public class Movement : MonoBehaviour
         //UpdateAmmoList();
     }
 
+    void SetMaterialUI()
+    {
+        woodText.text = "Wood: " + materialCountList[0];
+        brickText.text = "Brick: " + materialCountList[1];
+        metalText.text = "Metal: " + materialCountList[2];
+    }
+
     [PunRPC]
     void SwitchToWeapon(string currentItem)
     {
@@ -823,9 +925,7 @@ public class Movement : MonoBehaviour
 
         StopCoroutine("StartReload");
         StopCoroutine("ReloadAnimation");
-        reloadCircle.gameObject.SetActive(false);
-
-       
+        reloadCircle.gameObject.SetActive(false);      
 
         // reset time since last shot;
         //lastTimeShot = Time.timeSinceLevelLoad - timeBetweenShots;
@@ -890,12 +990,21 @@ public class Movement : MonoBehaviour
 
     public void TryShooting()
     {
+        if (currentItem.isHealingItem)
+        {
+            Debug.Log("Healing item");
+            playerHealth.ReplenishHealth(25, 2);
+        }
         if (Time.timeSinceLevelLoad - lastTimeShot > timeBetweenShots)
         {
             if (currentBulletsInMag <= 0 && totalBulletsAvailable > 0)
             {
                 Debug.Log("No bullets in mag");
                 Reload();
+                return;
+            } else if (totalBulletsAvailable <= 0)
+            {
+                Debug.Log("No ammo");
                 return;
             }
 
@@ -931,8 +1040,8 @@ public class Movement : MonoBehaviour
                 {
                     float thisAngle = angle + (maxAngle / 2) - (maxAngle / amountOfBulletsShot * i);
                     Vector3 newDirection = Quaternion.AngleAxis(thisAngle, Vector3.forward) * Vector3.right;
-
-                    photonView.RPC("SpawnBullet", RpcTarget.AllBufferedViaServer, bulletOrigin.position, newDirection, bulletSpeed, bulletDamage, currentItem.timeBeforeDestroy);
+                    SpawnBullet(bulletOrigin.position, newDirection, bulletSpeed, bulletDamage, currentItem.timeBeforeDestroy);
+                    photonView.RPC("SpawnBullet", RpcTarget.Others, bulletOrigin.position, newDirection, bulletSpeed, bulletDamage, currentItem.timeBeforeDestroy);
                 }
             }        
 
@@ -948,9 +1057,9 @@ public class Movement : MonoBehaviour
                 Reload();
             }
             UpdateAmmoList();
+            inventory.UpdateAmmo(inventory.GetItemIndex(currentItem), totalBulletsAvailable);
         }
     }
-
 
     private float Angle(Vector3 v)
     {

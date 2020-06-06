@@ -10,25 +10,25 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: f506c961929444247a3f60f766241963, type: 3}
-  m_Name: SCAR
+  m_Name: Sniper 1
   m_EditorClassIdentifier: 
-  itemName: AR
-  description: An automatic gun with a moderate fire rate and good damage.
-  topViewSprite: {fileID: 2212421412312922323, guid: 037e7cbca5e351343818ca3bfca97f80,
+  itemName: Sniper
+  description: A long range weapon with high damage and no bloom.
+  topViewSprite: {fileID: 6813005722775649389, guid: 037e7cbca5e351343818ca3bfca97f80,
     type: 3}
   sideViewSprite: {fileID: 0}
   muzzleFlashSprite: {fileID: 0}
-  bulletSprite: {fileID: 7039401936283989537, guid: 037e7cbca5e351343818ca3bfca97f80,
+  bulletSprite: {fileID: 8030500598090849251, guid: 037e7cbca5e351343818ca3bfca97f80,
     type: 3}
-  timeBetweenShots: 0.15
-  damage: 35
-  reloadTime: 1.1
-  magazineSize: 30
+  timeBetweenShots: 0.6
+  damage: 80
+  reloadTime: 1
+  magazineSize: 1
   bloomAmount: 0
   bulletSpeed: 50
   bulletsShotAtOnce: 1
-  timeBeforeDestroy: 0.8
-  startingAmmo: 90
+  timeBeforeDestroy: 1.3
+  startingAmmo: 10
   throwable: 0
   isHealingItem: 0
   healingTime: 0

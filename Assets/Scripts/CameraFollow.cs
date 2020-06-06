@@ -36,7 +36,7 @@ public class CameraFollow : MonoBehaviour
         {
             foreach (GameObject player in GameObject.FindGameObjectsWithTag("Player"))
             {
-                if (player.GetComponent<PhotonView>().IsMine && !An3Apps.GameManager.testMode)
+                if (player.GetComponent<PhotonView>().IsMine && !An3Apps.GameManager.testMode || PhotonNetwork.OfflineMode)
                 {
                     target = player.GetComponent<PhotonView>().transform;
                     break;

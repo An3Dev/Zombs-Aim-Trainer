@@ -49,7 +49,6 @@ namespace An3Apps
                 if (PhotonNetwork.IsMasterClient)
                 {
                     photonView.RPC("SpawnPlayer", RpcTarget.AllBuffered, Random.Range(0, 3));
-                    Debug.Log("Test");
                 }
             }
         }
@@ -65,7 +64,6 @@ namespace An3Apps
             } else 
             {
                 PhotonNetwork.Instantiate("Player", position, Quaternion.identity);
-                Debug.Log("Instantiated");
             }
         }
 

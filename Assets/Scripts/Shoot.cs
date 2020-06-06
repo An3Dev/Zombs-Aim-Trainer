@@ -56,15 +56,15 @@ public class Shoot : MonoBehaviour
             mouseWorldPos = new Vector3(mouseWorldPos.x, mouseWorldPos.y, 0);
             Vector3 direction = (mouseWorldPos - transform.root.position).normalized;
 
-            SpawnBullet(bulletOrigin.position, direction);
+            //SpawnBullet(bulletOrigin.position, direction);
             try
             {
-                photonView.RPC("SpawnBullet", RpcTarget.AllBuffered, bulletOrigin.position, direction);
+                SpawnBullet(bulletOrigin.position, direction);
+                photonView.RPC("SpawnBullet", RpcTarget.Others, bulletOrigin.position, direction);
             } catch
             {
                 Debug.Log("Error spawning bullet online");
             }
-
 
             lastTimeShot = Time.timeSinceLevelLoad;
             timesShot++;
