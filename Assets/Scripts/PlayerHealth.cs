@@ -44,7 +44,6 @@ public class PlayerHealth : MonoBehaviour, IDamageable<float, GameObject>
             //StartSpawn(0);
         }
 
-
         shieldSlider = GameObject.Find("ShieldSlider").GetComponent<Slider>();
         healthSlider = GameObject.Find("HealthSlider").GetComponent<Slider>();
         //Spawn(0);
@@ -266,7 +265,12 @@ public class PlayerHealth : MonoBehaviour, IDamageable<float, GameObject>
 
             transform.root.GetComponent<Movement>().enabled = false;
 
-            photonView.RPC("StartSpawn", RpcTarget.AllBuffered, 3f);
+            // Disable collider
+
+            if (!GameManager.lastPersonStanding)
+            {
+                photonView.RPC("StartSpawn", RpcTarget.AllBuffered, 3f);
+            }
         }
         else
         {
@@ -275,6 +279,5 @@ public class PlayerHealth : MonoBehaviour, IDamageable<float, GameObject>
 
             StartSpawn(3);
         }
-
     }
 }

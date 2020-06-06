@@ -22,7 +22,14 @@ namespace An3Apps
 
         [SerializeField] GameObject spawnPointsContainer;
 
+        public static bool lastPersonStanding = true;
+        Movement movement;
+        PlayerHealth playerhealth;
+        PhotonView playerPhotonView;
+
         bool connected = false;
+
+        GameObject player;
         // Start is called before the first frame update
         void Awake()
         {
@@ -60,11 +67,14 @@ namespace An3Apps
 
             if (testMode)
             {
-                Instantiate(Resources.Load("Player"), position, Quaternion.identity);
+                player = Instantiate(Resources.Load("Player"), position, Quaternion.identity) as GameObject;
             } else 
             {
-                PhotonNetwork.Instantiate("Player", position, Quaternion.identity);
+                player = PhotonNetwork.Instantiate("Player", position, Quaternion.identity) as GameObject;
             }
+            playerhealth = player.GetComponent<PlayerHealth>();
+            movement = player.GetComponent<Movement>();
+            playerPhotonView = player.GetComponent<PhotonView>();
         }
 
         public Vector3 PositionPlayer(int shift)
@@ -87,6 +97,7 @@ namespace An3Apps
             if (Input.GetKey(KeyCode.Escape) && PhotonNetwork.IsMasterClient)
             {
                 // show restart game options, 
+                
             }
             if (Input.GetKey(KeyCode.Escape))
             {
@@ -105,9 +116,15 @@ namespace An3Apps
         }
 
         [PunRPC]
-        void RestartGame()
+        void RestartGame(int shift)
         {
-
+            if (!PhotonNetwork.OfflineMode && PhotonNetwork.IsMasterClient)
+            {
+                PositionPlayer(shift);
+            }
+            player.GetComponent<Movement>().SetAmmo(true, 0, 0);
+            player.GetComponent<PlayerHealth>().ReplenishHealth(200, 2);
+            playerPhotonView.RPC("StartSpawn", RpcTarget.AllBuffered, 3);
         }
 
         [PunRPC]
