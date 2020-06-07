@@ -83,11 +83,15 @@ public class Movement : MonoBehaviour
         brickText = group.transform.GetChild(1).GetComponent<TextMeshProUGUI>();
         metalText = group.transform.GetChild(2).GetComponent<TextMeshProUGUI>();
 
+
+
         materialCountList = new List<float>();
         if (!PhotonNetwork.OfflineMode && !photonView.IsMine)
         {
             return;
         }
+        gameManagerPhotonView = GameObject.Find("GameManager").GetComponent<PhotonView>();
+        inventory = GetComponentInChildren<Inventory>();
 
         mainCamera = Camera.main;
 
@@ -101,8 +105,7 @@ public class Movement : MonoBehaviour
         rightEditPress.SetActive(false);
         editWall.SetActive(false);
 
-        gameManagerPhotonView = GameObject.Find("GameManager").GetComponent<PhotonView>();
-        inventory = GetComponentInChildren<Inventory>();
+
 
         ammoUI = GameObject.Find("AmmoUI");
         currentBulletsInMagText = GetChildByName("CurrentAmmoInMagText", ammoUI.transform).GetComponent<TextMeshProUGUI>();
@@ -852,9 +855,22 @@ public class Movement : MonoBehaviour
     // Sets the ammo count of all the weapons. Also swaps ammo when weapons are moved in the inventory
     public void SetAmmo(bool setToMax, int from, int to)
     {
+        if (!photonView.IsMine)
+        {
+            return;
+        }
         // if want to set the ammo to its default staring ammo.
         if (setToMax)
         {
+            if (totalAmmoList == null)
+            {
+                totalAmmoList = new List<int>();
+            }
+            if (currentBulletsInMagList == null)
+            {
+                currentBulletsInMagList = new List<int>();
+            }
+
             totalAmmoList.Clear();
             currentBulletsInMagList.Clear();
             for (int i = 0; i < inventory.itemsInInventory.Count; i++)

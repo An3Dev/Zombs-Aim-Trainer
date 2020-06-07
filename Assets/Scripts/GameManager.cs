@@ -27,14 +27,21 @@ namespace An3Apps
         PlayerHealth playerhealth;
         PhotonView playerPhotonView;
 
+        PhotonView thisPhotonView;
+
         bool connected = false;
 
+        bool startedGame = false;
         GameObject player;
+
+        Player[] playerArray;
+
+        int playersAlive = 4;
         // Start is called before the first frame update
         void Awake()
         {
             Instance = this;
-            
+            thisPhotonView = GetComponent<PhotonView>();
         }
 
         private void Start()
@@ -55,9 +62,18 @@ namespace An3Apps
                 connected = true;
                 if (PhotonNetwork.IsMasterClient)
                 {
-                    photonView.RPC("SpawnPlayer", RpcTarget.AllBuffered, Random.Range(0, 3));
+                    thisPhotonView.RPC("SpawnPlayer", RpcTarget.AllBuffered, Random.Range(0, 3));
                 }
+                playersAlive = PhotonNetwork.PlayerList.Length;
+                playerArray = PhotonNetwork.PlayerList;
+
             }
+        }
+
+        public void PlayerDied(int photonViewID)
+        {
+            playersAlive--;
+            Debug.Log("Player died");
         }
 
         [PunRPC]
@@ -113,6 +129,13 @@ namespace An3Apps
                 }
             }
             pingText.text = PhotonNetwork.GetPing() + "ms";
+
+            if (playersAlive <= 1 && PhotonNetwork.IsMasterClient && !startedGame)
+            {
+                thisPhotonView.RPC("RestartGame", RpcTarget.AllBuffered, Random.Range(0, 3));
+                startedGame = true;
+                Debug.Log(playerPhotonView.transform);
+            }
         }
 
         [PunRPC]
@@ -122,9 +145,14 @@ namespace An3Apps
             {
                 PositionPlayer(shift);
             }
-            player.GetComponent<Movement>().SetAmmo(true, 0, 0);
-            player.GetComponent<PlayerHealth>().ReplenishHealth(200, 2);
-            playerPhotonView.RPC("StartSpawn", RpcTarget.AllBuffered, 3);
+            if (photonView.IsMine)
+            {
+                player.GetComponent<Movement>().SetAmmo(true, 0, 0);
+                player.GetComponent<PlayerHealth>().ReplenishHealth(200, 2);
+                startedGame = false;
+                playerPhotonView.RPC("StartSpawn", RpcTarget.AllBuffered, 3);
+                Debug.Log("Restart");
+            }
         }
 
         [PunRPC]

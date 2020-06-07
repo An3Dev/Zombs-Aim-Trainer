@@ -15,7 +15,7 @@ MonoBehaviour:
   AppSettings:
     AppIdRealtime: d0e9b9a0-dc1b-43b7-a186-f7d54e0b665a
     AppIdChat: 
-    AppIdVoice: bddf6461-52b5-4100-a9e9-3ff5b10eed41
+    AppIdVoice: 
     AppVersion: 
     UseNameServer: 1
     FixedRegion: 
@@ -25,7 +25,7 @@ MonoBehaviour:
     AuthMode: 0
     EnableLobbyStatistics: 0
     NetworkLogging: 1
-  DevRegion: usw
+  DevRegion: 
   PunLogging: 0
   EnableSupportLogger: 0
   RunInBackground: 1
@@ -33,21 +33,20 @@ MonoBehaviour:
   RpcList:
   - AddWall
   - AssignParent
-  - ChangeColour
   - ClickRpc
   - DestroyRpc
+  - DestroySelf
   - DestroySpaceship
   - Die
   - EnableGameObject
   - Fire
   - MakeVisible
   - RespawnSpaceship
+  - RestartGame
   - SpawnBullet
+  - SpawnPlayer
   - StartSpawn
   - SwitchToWeapon
-  - DestroySelf
-  - RestartGame
-  - SpawnPlayer
   DisableAutoOpenWizard: 1
   ShowSettings: 1
-  DevRegionSetOnce: 1
+  DevRegionSetOnce: 0
