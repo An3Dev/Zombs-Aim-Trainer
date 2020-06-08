@@ -22,7 +22,7 @@ namespace An3Apps
 
         [SerializeField] GameObject spawnPointsContainer;
 
-        public static bool lastPersonStanding = true;
+        public static bool lastPersonStanding = false;
         Movement movement;
         PlayerHealth playerhealth;
         PhotonView playerPhotonView;
@@ -131,7 +131,7 @@ namespace An3Apps
             }
             pingText.text = PhotonNetwork.GetPing() + "ms";
 
-            if (playersAlive <= 1 && PhotonNetwork.IsMasterClient && !startedGame)
+            if (playersAlive <= 1 && PhotonNetwork.IsMasterClient && !startedGame && lastPersonStanding)
             {
                 thisPhotonView.RPC("RestartGame", RpcTarget.AllBuffered, Random.Range(0, 3));
                 startedGame = true;
@@ -146,7 +146,7 @@ namespace An3Apps
             {
                 PositionPlayer(shift);
             }
-            if (photonView.IsMine)
+            if (playerPhotonView.IsMine)
             {
                 player.GetComponent<Movement>().SetAmmo(true, 0, 0);
                 player.GetComponent<PlayerHealth>().ReplenishHealth(200, 2);

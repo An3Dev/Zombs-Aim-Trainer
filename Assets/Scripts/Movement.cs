@@ -90,6 +90,7 @@ public class Movement : MonoBehaviour
         {
             return;
         }
+
         gameManagerPhotonView = GameObject.Find("GameManager").GetComponent<PhotonView>();
         inventory = GetComponentInChildren<Inventory>();
 
@@ -519,7 +520,6 @@ public class Movement : MonoBehaviour
 
             gunRenderer.transform.GetComponent<BoxCollider2D>().enabled = true;
             lastState = PlayerState.Weapon;
-
         }
     }
 
@@ -542,15 +542,6 @@ public class Movement : MonoBehaviour
         }
     }
 
-    public void StoppedEditing()
-    {
-        playerState = previousState;
-        if (previousState == PlayerState.Building)
-        {
-            StartBuilding();
-        }
-        
-    }
     void Rotate()
     {
         Vector3 mouseWorldPos = mainCamera.ScreenToWorldPoint(Input.mousePosition);
@@ -1125,7 +1116,6 @@ public class Movement : MonoBehaviour
             //bullet.SendMessage("AssignParent", photonView.ViewID);
  
             bullet.SendMessage("AssignParent", photonView.ViewID);
-
         }
         else
         {
@@ -1166,6 +1156,15 @@ public class Movement : MonoBehaviour
         //ResetEditWall();     
     }
 
+    public void StoppedEditing()
+    {
+        playerState = previousState;
+        if (previousState == PlayerState.Building)
+        {
+            StartBuilding();
+        }
+
+    }
     public bool Edit()
     {
         if (isEditingWall)

@@ -25,10 +25,10 @@ public class Inventory : MonoBehaviour
         movementScript = transform.root.GetComponent<Movement>();
 
         photonView = GetComponent <PhotonView>();
-        if (!photonView.IsMine)
-        {
-            return;
-        }
+        //if (!photonView.IsMine)
+        //{
+        //    return;
+        //}
 
         AddItem(P90);
         AddItem(Scar);
