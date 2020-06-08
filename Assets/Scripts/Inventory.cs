@@ -4,6 +4,8 @@ using System.Linq;
 using UnityEngine;
 using TMPro;
 using UnityEngine.UI;
+using Photon.Pun;
+
 public class Inventory : MonoBehaviour
 {
 
@@ -15,11 +17,19 @@ public class Inventory : MonoBehaviour
 
     Transform inventoryLayoutGroup;
     Movement movementScript;
+    PhotonView photonView;
     private void Awake()
     {
         inventoryLayoutGroup = GameObject.Find("InventoryLayoutGroup").transform;
 
         movementScript = transform.root.GetComponent<Movement>();
+
+        photonView = GetComponent <PhotonView>();
+        if (!photonView.IsMine)
+        {
+            return;
+        }
+
         AddItem(P90);
         AddItem(Scar);
         AddItem(Shotgun);

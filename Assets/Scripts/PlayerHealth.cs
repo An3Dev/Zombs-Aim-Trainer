@@ -268,7 +268,7 @@ public class PlayerHealth : MonoBehaviour, IDamageable<float, GameObject>
             // Disable collider
 
             // tell game manager that this player died
-            gameManager.PlayerDied(photonView.ViewID);
+            gameManager.photonView.RPC("PlayerDied", RpcTarget.AllBuffered, photonView.ViewID);
 
             // if the game is not last man standing then respawn
             if (!GameManager.lastPersonStanding)

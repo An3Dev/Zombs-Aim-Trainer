@@ -70,6 +70,7 @@ namespace An3Apps
             }
         }
 
+        [PunRPC]
         public void PlayerDied(int photonViewID)
         {
             playersAlive--;
@@ -150,7 +151,7 @@ namespace An3Apps
                 player.GetComponent<Movement>().SetAmmo(true, 0, 0);
                 player.GetComponent<PlayerHealth>().ReplenishHealth(200, 2);
                 startedGame = false;
-                playerPhotonView.RPC("StartSpawn", RpcTarget.AllBuffered, 3);
+                playerPhotonView.RPC("StartSpawn", RpcTarget.AllBuffered, 3f);
                 Debug.Log("Restart");
             }
         }

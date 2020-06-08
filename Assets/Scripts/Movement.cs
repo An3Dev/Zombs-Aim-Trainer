@@ -498,7 +498,7 @@ public class Movement : MonoBehaviour
         {
             gunRenderer.sprite = editingSprite;
 
-            if (lastState == PlayerState.Editing)
+            if (lastState == PlayerState.Building)
             {
                 StopBuilding();
             }
