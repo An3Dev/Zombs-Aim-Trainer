@@ -999,6 +999,7 @@ public class Movement : MonoBehaviour
 
     public void TryShooting()
     {
+        Debug.Log("Try shooting");
         if (currentItem.isHealingItem)
         {
             Debug.Log("Healing item");

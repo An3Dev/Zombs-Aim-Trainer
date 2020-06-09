@@ -143,34 +143,38 @@ public class PlayerHealth : MonoBehaviour, IDamageable<float, GameObject>
     public void Damage(float damageTaken, GameObject damager)
     {
 
-        GameObject damageTextGO = Instantiate(damageTextPrefab, transform.position, Quaternion.identity);
-        TextMeshPro text = damageTextGO.GetComponent<TextMeshPro>();
-        text.text = damageTaken.ToString();
-        if (currentShields <= 0)
+        if (!photonView.IsMine)
         {
-            currentHealth -= damageTaken;
-            text.color = Color.white;
-        }
-        else
-        {
-            // if damage penetrates the shield and goes to health
-            if (currentShields - damageTaken < 0)
+            GameObject damageTextGO = Instantiate(damageTextPrefab, transform.position, Quaternion.identity);
+            TextMeshPro text = damageTextGO.GetComponent<TextMeshPro>();
+            text.text = damageTaken.ToString();
+            if (currentShields <= 0)
             {
-                currentHealth -= damageTaken - currentShields;
-                currentShields = 0;
-            } else
-            {
-                currentShields -= damageTaken;
+                currentHealth -= damageTaken;
+                text.color = Color.white;
             }
-            text.color = Color.blue;
+            else
+            {
+                // if damage penetrates the shield and goes to health
+                if (currentShields - damageTaken < 0)
+                {
+                    currentHealth -= damageTaken - currentShields;
+                    currentShields = 0;
+                }
+                else
+                {
+                    currentShields -= damageTaken;
+                }
+                text.color = Color.blue;
+            }
+
+
+
+            Vector3 randomDirection = new Vector2(UnityEngine.Random.Range(-1f, 1f), UnityEngine.Random.Range(-1f, 1f));
+            damageTextGO.transform.LeanMove(transform.position + randomDirection * 2, 1);
+
+            Destroy(damageTextGO, 1);
         }
-
-
-
-        Vector3 randomDirection = new Vector2(UnityEngine.Random.Range(-1f, 1f), UnityEngine.Random.Range(-1f, 1f));
-        damageTextGO.transform.LeanMove(transform.position + randomDirection * 2, 1);
-
-        Destroy(damageTextGO, 1);
 
         if (photonView.IsMine)
         {

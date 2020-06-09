@@ -23,6 +23,8 @@ namespace An3Apps
         [SerializeField] GameObject spawnPointsContainer;
 
         public static bool lastPersonStanding = false;
+
+        public int killsToWin = 20;
         Movement movement;
         PlayerHealth playerhealth;
         PhotonView playerPhotonView;
@@ -30,6 +32,8 @@ namespace An3Apps
         PhotonView thisPhotonView;
 
         bool connected = false;
+
+        private Dictionary<int, GameObject> playerListEntries;
 
         bool startedGame = false;
         GameObject player;
@@ -42,6 +46,19 @@ namespace An3Apps
         {
             Instance = this;
             thisPhotonView = GetComponent<PhotonView>();
+
+            playerListEntries = new Dictionary<int, GameObject>();
+
+            foreach (Player p in PhotonNetwork.PlayerList)
+            {
+            //    GameObject entry = Instantiate(PlayerOverviewEntryPrefab);
+            //    entry.transform.SetParent(gameObject.transform);
+            //    entry.transform.localScale = Vector3.one;
+            //    //entry.GetComponent<Text>().color = QuickBuildsGame.GetColor(p.GetPlayerNumber());
+            //    entry.GetComponent<Text>().text = string.Format("{0}\nElims: {1}\nDeaths: 0", p.NickName, p.GetScore());
+
+                playerListEntries.Add(p.ActorNumber, entry);
+            }
         }
 
         private void Start()
@@ -111,6 +128,8 @@ namespace An3Apps
         // Update is called once per frame
         void Update()
         {
+
+            
             if (Input.GetKey(KeyCode.Escape) && PhotonNetwork.IsMasterClient)
             {
                 // show restart game options, 
@@ -136,6 +155,19 @@ namespace An3Apps
                 thisPhotonView.RPC("RestartGame", RpcTarget.AllBuffered, Random.Range(0, 3));
                 startedGame = true;
                 Debug.Log(playerPhotonView.transform);
+            }
+        }
+
+        public override void OnPlayerPropertiesUpdate(Player targetPlayer, Hashtable changedProps)
+        {
+            GameObject entry;
+            if (playerListEntries.TryGetValue(targetPlayer.ActorNumber, out entry))
+            {
+                //entry.GetComponent<Text>().text = string.Format("{0}\nElims: {1}\nDeaths: {2}", targetPlayer.NickName, targetPlayer.GetScore(), targetPlayer.CustomProperties[QuickBuildsGame.PLAYER_DEATHS]);
+                if (targetPlayer.GetScore() >= killsToWin)
+                {
+                    Debug.Log("Target player: " + targetPlayer);
+                }
             }
         }
 
