@@ -1,6 +1,7 @@
 ﻿using An3Apps;
 using Photon.Pun;
 using Photon.Pun.UtilityScripts;
+using Photon.Realtime;
 using System.Collections;
 using TMPro;
 using UnityEngine;
@@ -107,6 +108,7 @@ public class PlayerHealth : MonoBehaviour, IDamageable<float, GameObject>
     {
         yield return new WaitForSeconds(time);
 
+        gameManager.DisableLeaderboardScreen();
         SetVariables();
         transform.GetComponent<Movement>().enabled = true;
 
@@ -142,39 +144,49 @@ public class PlayerHealth : MonoBehaviour, IDamageable<float, GameObject>
 
     public void Damage(float damageTaken, GameObject damager)
     {
+        bool shields = true;
 
+        if (currentShields <= 0)
+        {
+            currentHealth -= damageTaken;
+            shields = false;
+        }
+        else
+        {
+            // if damage penetrates the shield and goes to health
+            if (currentShields - damageTaken < 0)
+            {
+                currentHealth -= damageTaken - currentShields;
+                currentShields = 0;
+            }
+            else
+            {
+                currentShields -= damageTaken;
+            }
+            shields = true;
+        }
         if (!photonView.IsMine)
         {
             GameObject damageTextGO = Instantiate(damageTextPrefab, transform.position, Quaternion.identity);
             TextMeshPro text = damageTextGO.GetComponent<TextMeshPro>();
             text.text = damageTaken.ToString();
-            if (currentShields <= 0)
+
+            if (shields)
             {
-                currentHealth -= damageTaken;
+                text.color = Color.blue;
+            } else
+            {
                 text.color = Color.white;
             }
-            else
-            {
-                // if damage penetrates the shield and goes to health
-                if (currentShields - damageTaken < 0)
-                {
-                    currentHealth -= damageTaken - currentShields;
-                    currentShields = 0;
-                }
-                else
-                {
-                    currentShields -= damageTaken;
-                }
-                text.color = Color.blue;
-            }
-
-
-
             Vector3 randomDirection = new Vector2(UnityEngine.Random.Range(-1f, 1f), UnityEngine.Random.Range(-1f, 1f));
             damageTextGO.transform.LeanMove(transform.position + randomDirection * 2, 1);
 
             Destroy(damageTextGO, 1);
         }
+
+        
+
+        
 
         if (photonView.IsMine)
         {
@@ -187,14 +199,38 @@ public class PlayerHealth : MonoBehaviour, IDamageable<float, GameObject>
             {
                 damager.SendMessage("IncreaseKills", 1);
             }
-
-            object deaths;
-            if (PhotonNetwork.LocalPlayer.CustomProperties.TryGetValue(QuickBuildsGame.PLAYER_DEATHS, out deaths))
-            {
-                PhotonNetwork.LocalPlayer.SetCustomProperties(new ExitGames.Client.Photon.Hashtable { { QuickBuildsGame.PLAYER_DEATHS, (int)deaths + 1 } });
-                Debug.Log("Deaths: " + deaths);
-            }
+            AddDeath(photonView.Owner, 1);
         }
+    }
+
+    public static void SetDeaths(Player player, int newDeaths)
+    {
+        ExitGames.Client.Photon.Hashtable deaths = new ExitGames.Client.Photon.Hashtable();  // using PUN's implementation of Hashtable
+        deaths[PunPlayerScores.PlayerScoreProp] = newDeaths;
+
+        player.SetCustomProperties(deaths);  // this locally sets the score and will sync it in-game asap.
+    }
+
+    public static int GetPlayerDeaths(Player player)
+    {
+        object deaths;
+        if (player.CustomProperties.TryGetValue(QuickBuildsGame.PLAYER_DEATHS, out deaths))
+        {
+            return (int)deaths;
+        }
+        SetDeaths(player, 0);
+        return 0;
+    }
+
+    public static void AddDeath(Player player, int scoreToAddToCurrent)
+    {
+        int current = PlayerHealth.GetPlayerDeaths(player);
+        current = current + scoreToAddToCurrent;
+
+        ExitGames.Client.Photon.Hashtable deaths = new ExitGames.Client.Photon.Hashtable();  // using PUN's implementation of Hashtable
+        deaths[QuickBuildsGame.PLAYER_DEATHS] = current;
+
+        player.SetCustomProperties(deaths);  // this locally sets the score and will sync it in-game asap.
     }
 
     private bool Died()

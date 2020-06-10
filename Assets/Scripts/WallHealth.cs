@@ -8,7 +8,7 @@ public class WallHealth : MonoBehaviour, IDamageable<float, GameObject>
 
     public WallType wallType = WallType.Wood;
 
-    int[] wallHealth = { 100, 150, 300, 100, 1500 };
+    int[] wallHealth = { 100, 150, 250, 100, 1500 };
 
     int maxHealth;
 

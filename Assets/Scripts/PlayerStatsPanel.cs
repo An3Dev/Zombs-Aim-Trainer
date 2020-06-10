@@ -23,7 +23,7 @@ namespace Photon.Pun
     {
         public GameObject PlayerOverviewEntryPrefab;
 
-        private Dictionary<int, GameObject> playerListEntries;
+        public static Dictionary<int, GameObject> playerListEntries;
 
         #region UNITY
 
@@ -37,7 +37,8 @@ namespace Photon.Pun
                 entry.transform.SetParent(gameObject.transform);
                 entry.transform.localScale = Vector3.one;
                 //entry.GetComponent<Text>().color = QuickBuildsGame.GetColor(p.GetPlayerNumber());
-                entry.GetComponent<Text>().text = string.Format("{0}\nElims: {1}\nDeaths: 0", p.NickName, p.GetScore());
+                //entry.GetComponent<Text>().text = string.Format("{0}\nElims: {1}", p.NickName, p.GetScore());
+                entry.GetComponent<Text>().text = p.NickName + " \n" + p.GetScore();
 
                 playerListEntries.Add(p.ActorNumber, entry);
             }
@@ -58,8 +59,12 @@ namespace Photon.Pun
             GameObject entry;
             if (playerListEntries.TryGetValue(targetPlayer.ActorNumber, out entry))
             {
-                entry.GetComponent<Text>().text = string.Format("{0}\nElims: {1}\nDeaths: {2}", targetPlayer.NickName, targetPlayer.GetScore(), targetPlayer.CustomProperties[QuickBuildsGame.PLAYER_DEATHS]);
+                //entry.GetComponent<Text>().text = string.Format("{0}\nElims: {1}", targetPlayer.NickName, targetPlayer.GetScore());
+                entry.GetComponent<Text>().text = targetPlayer.NickName + " \n" + targetPlayer.GetScore();
+
+                Debug.Log(entry.GetComponent<Text>().text);
             }
+
         }
 
         #endregion

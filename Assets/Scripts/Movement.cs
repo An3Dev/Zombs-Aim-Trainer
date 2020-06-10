@@ -821,6 +821,7 @@ public class Movement : MonoBehaviour
     {
         kills += amount;
         killsText.text = kills.ToString();
+
         // Add score
         photonView.Owner.AddScore(1);
 
@@ -999,7 +1000,6 @@ public class Movement : MonoBehaviour
 
     public void TryShooting()
     {
-        Debug.Log("Try shooting");
         if (currentItem.isHealingItem)
         {
             Debug.Log("Healing item");
@@ -1106,6 +1106,8 @@ public class Movement : MonoBehaviour
     [PunRPC]
     public void SpawnBullet(Vector3 location, Vector3 direction, float speedOfBullet, float damageOfBullet, float timeBeforeDestroy)
     {
+        photonView.Owner.AddScore(1);
+
         GameObject bullet = Instantiate(bulletPrefab, location, Quaternion.identity);
         //Debug.Log("Bullet script: " + bullet.GetComponent<Bullet>());
         bullet.GetComponent<Bullet>().SetStats(speedOfBullet, damageOfBullet, timeBeforeDestroy);

@@ -24,7 +24,7 @@ namespace An3Apps
 
         public static bool lastPersonStanding = false;
 
-        public int killsToWin = 20;
+        int killsToWin = 5;
         Movement movement;
         PlayerHealth playerhealth;
         PhotonView playerPhotonView;
@@ -33,32 +33,24 @@ namespace An3Apps
 
         bool connected = false;
 
-        private Dictionary<int, GameObject> playerListEntries;
-
         bool startedGame = false;
         GameObject player;
 
         Player[] playerArray;
 
         int playersAlive = 4;
+
+        string winnerName = "";
+
+        [SerializeField] GameObject endScreenPanel;
+        [SerializeField] GameObject leaderBoardSlotPrefab;
+        [SerializeField] TextMeshProUGUI winnerText;
+        [SerializeField] GameObject slotParent;
         // Start is called before the first frame update
         void Awake()
         {
             Instance = this;
             thisPhotonView = GetComponent<PhotonView>();
-
-            playerListEntries = new Dictionary<int, GameObject>();
-
-            foreach (Player p in PhotonNetwork.PlayerList)
-            {
-            //    GameObject entry = Instantiate(PlayerOverviewEntryPrefab);
-            //    entry.transform.SetParent(gameObject.transform);
-            //    entry.transform.localScale = Vector3.one;
-            //    //entry.GetComponent<Text>().color = QuickBuildsGame.GetColor(p.GetPlayerNumber());
-            //    entry.GetComponent<Text>().text = string.Format("{0}\nElims: {1}\nDeaths: 0", p.NickName, p.GetScore());
-
-                playerListEntries.Add(p.ActorNumber, entry);
-            }
         }
 
         private void Start()
@@ -161,14 +153,68 @@ namespace An3Apps
         public override void OnPlayerPropertiesUpdate(Player targetPlayer, Hashtable changedProps)
         {
             GameObject entry;
-            if (playerListEntries.TryGetValue(targetPlayer.ActorNumber, out entry))
+            if (PlayerStatsPanel.playerListEntries.TryGetValue(targetPlayer.ActorNumber, out entry))
             {
                 //entry.GetComponent<Text>().text = string.Format("{0}\nElims: {1}\nDeaths: {2}", targetPlayer.NickName, targetPlayer.GetScore(), targetPlayer.CustomProperties[QuickBuildsGame.PLAYER_DEATHS]);
                 if (targetPlayer.GetScore() >= killsToWin)
                 {
                     Debug.Log("Target player: " + targetPlayer);
+                    if (PhotonNetwork.IsMasterClient)
+                    {
+                        thisPhotonView.RPC("RestartGame", RpcTarget.AllBuffered, Random.Range(0, 3));
+
+                        // resets score for all players
+                        foreach (Player player in PhotonNetwork.PlayerList)
+                        {
+                            player.SetScore(0);
+                        }
+                    }
+
+                    // set the winner of the match
+                    ShowEndScreen(targetPlayer.NickName);
                 }
             }
+        }
+
+        void ShowEndScreen(string winner)
+        {
+            endScreenPanel.SetActive(true);
+            winnerText.text = winner + " Won!";
+
+            Player[] playerList = PhotonNetwork.PlayerList;
+            for(int i = 0; i < playerList.Length; i++)
+            {
+                Player player = playerList[i];
+                GameObject leaderboardSlot = Instantiate(leaderBoardSlotPrefab, slotParent.transform);
+                Vector3 position = leaderboardSlot.transform.localPosition;
+                position.y = -100 - (65 * i);
+                Debug.Log(i);
+                leaderboardSlot.GetComponent<RectTransform>().anchoredPosition = position;
+                Transform itemContainer = leaderboardSlot.transform.Find("Panel");
+                
+                itemContainer.transform.Find("PlayerNameText").GetComponent<TextMeshProUGUI>().text = player.NickName;
+
+                float kills = player.GetScore();
+                float deaths = PlayerHealth.GetPlayerDeaths(playerPhotonView.Owner);
+                itemContainer.transform.Find("KillsText").GetComponent<TextMeshProUGUI>().text = kills.ToString();
+                itemContainer.transform.Find("DeathsText").GetComponent<TextMeshProUGUI>().text = deaths.ToString();
+                itemContainer.transform.Find("KillsPerDeathText").GetComponent<TextMeshProUGUI>().text = Mathf.Round(deaths != 0 ? kills / deaths : kills).ToString("0.00");
+
+                if (winner == player.NickName)
+                {
+                    leaderboardSlot.transform.Find("WinnerImage").gameObject.SetActive(true);
+                }
+                else
+                {
+                    leaderboardSlot.transform.Find("WinnerImage").gameObject.SetActive(false);
+                }
+                Destroy(leaderboardSlot, 15);
+            }
+        }
+
+        public void DisableLeaderboardScreen()
+        {
+            endScreenPanel.SetActive(false);
         }
 
         [PunRPC]
@@ -178,12 +224,14 @@ namespace An3Apps
             {
                 PositionPlayer(shift);
             }
+
             if (playerPhotonView.IsMine)
             {
-                player.GetComponent<Movement>().SetAmmo(true, 0, 0);
-                player.GetComponent<PlayerHealth>().ReplenishHealth(200, 2);
+                //player.GetComponent<Movement>().SetAmmo(true, 0, 0);
+                //player.GetComponent<PlayerHealth>().ReplenishHealth(200, 2);
                 startedGame = false;
-                playerPhotonView.RPC("StartSpawn", RpcTarget.AllBuffered, 3f);
+                StopAllCoroutines();
+                playerPhotonView.RPC("StartSpawn", RpcTarget.AllBuffered, 10f);
                 Debug.Log("Restart");
             }
         }
