@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using UnityEngine;
 using Photon.Pun;
+using An3Apps;
+
 public class WallHealth : MonoBehaviour, IDamageable<float, GameObject>
 {
     public enum WallType { Wood, Brick, Metal, Electric, SuperStrong }
@@ -16,14 +18,26 @@ public class WallHealth : MonoBehaviour, IDamageable<float, GameObject>
 
     PhotonView photonView;
 
+    bool noPhotonView = false;
     float minimumTransparency = 0.1f;
+
+    PhotonView gameManagerPhotonView;
 
     private void Awake()
     {
         int toInt = (int)wallType;
         maxHealth = wallHealth[toInt];
         currentHealth = maxHealth;
-        photonView = GetComponent<PhotonView>();
+        if (GetComponent<PhotonView>() != null)
+        {
+            photonView = GetComponent<PhotonView>();
+        } else
+        {
+            photonView = null;
+            noPhotonView = true;
+        }
+
+        gameManagerPhotonView = GameObject.Find("GameManager").GetComponent<PhotonView>();
     }
 
     public void Damage(float damageTaken, GameObject manager)
@@ -75,13 +89,14 @@ public class WallHealth : MonoBehaviour, IDamageable<float, GameObject>
             //Destroy(gameObject);
 
             //photonView.gameObject.SetActive(false);
-            if (!PhotonNetwork.OfflineMode)
+            if (!PhotonNetwork.OfflineMode && !noPhotonView)
             {
                 
                 photonView.RPC("DestroySelf", RpcTarget.AllBuffered);
                 
-            } else
+            } else if (!PhotonNetwork.OfflineMode)
             {
+                gameManagerPhotonView.RPC("DisableObject", RpcTarget.AllBuffered, transform.name, transform.parent);
                 Destroy(transform.root.gameObject);
                 Debug.Log("Destroy");
             }

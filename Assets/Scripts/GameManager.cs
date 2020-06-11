@@ -24,7 +24,7 @@ namespace An3Apps
 
         public static bool lastPersonStanding = false;
 
-        int killsToWin = 5;
+        int killsToWin = 20;
         Movement movement;
         PlayerHealth playerhealth;
         PhotonView playerPhotonView;
@@ -242,6 +242,18 @@ namespace An3Apps
             PhotonView Disable = PhotonView.Find(photonID);
             Disable.transform.gameObject.SetActive(setActive);
             Debug.Log("SetActive: " + setActive + " for " + Disable.transform.name);
+        }
+
+        [PunRPC]
+        public void DisableGameObject(string name, string parent)
+        {
+            if (parent != null)
+            {
+                GameObject.Find(parent).transform.Find(name).gameObject.SetActive(false);
+            } else
+            {
+                GameObject.Find(name).SetActive(false);
+            }
         }
 
         public void OnLeaveMatchPressed(Text text)

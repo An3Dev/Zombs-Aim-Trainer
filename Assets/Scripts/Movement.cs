@@ -123,6 +123,7 @@ public class Movement : MonoBehaviour
 
         playerHealth = GetComponent<PlayerHealth>();
 
+        killFeedPhotonView = GameObject.Find("KillFeed").GetComponent<PhotonView>();
         //SetAmmo(true, 0, 0);
     }
 
@@ -463,7 +464,7 @@ public class Movement : MonoBehaviour
         if (stateToChangeTo == PlayerState.Building)
         {
             gunRenderer.sprite = buildingSprite;
-            gunRenderer.transform.GetComponent<BoxCollider2D>().enabled = false;
+            gunRenderer.transform.GetComponent<BoxCollider2D>().isTrigger = true;
             lastState = PlayerState.Building;
 
             if (isEditingWall)
@@ -474,7 +475,7 @@ public class Movement : MonoBehaviour
         else if (stateToChangeTo == PlayerState.Editing)
         {
             gunRenderer.sprite = editingSprite;
-            gunRenderer.transform.GetComponent<BoxCollider2D>().enabled = false;
+            gunRenderer.transform.GetComponent<BoxCollider2D>().isTrigger = true;
             //lastState = PlayerState.Editing;
         }
 
@@ -492,7 +493,7 @@ public class Movement : MonoBehaviour
             }
 
             StartBuilding();
-            gunRenderer.transform.GetComponent<BoxCollider2D>().enabled = false;
+            gunRenderer.transform.GetComponent<BoxCollider2D>().isTrigger = true;
             lastState = PlayerState.Building;
         }
         else if (stateToChangeTo == PlayerState.Editing)
@@ -504,7 +505,7 @@ public class Movement : MonoBehaviour
                 StopBuilding();
             }
 
-            gunRenderer.transform.GetComponent<BoxCollider2D>().enabled = false;
+            gunRenderer.transform.GetComponent<BoxCollider2D>().isTrigger = true;
             //lastState = PlayerState.Editing;
             
         } else if (stateToChangeTo == PlayerState.Weapon)
@@ -518,7 +519,7 @@ public class Movement : MonoBehaviour
                 CancelEdit();
             }
 
-            gunRenderer.transform.GetComponent<BoxCollider2D>().enabled = true;
+            gunRenderer.transform.GetComponent<BoxCollider2D>().isTrigger = false;
             lastState = PlayerState.Weapon;
         }
     }
@@ -817,13 +818,18 @@ public class Movement : MonoBehaviour
 
     [SerializeField] float healthIncreasePerKill = 100;
 
-    public void IncreaseKills(int amount)
+    PhotonView killFeedPhotonView;
+
+    public void IncreaseKills(int amount, Player deadPlayer)
     {
         kills += amount;
         killsText.text = kills.ToString();
 
         // Add score
         photonView.Owner.AddScore(1);
+
+        Debug.Log(photonView.Owner.NickName + " eliminated " + deadPlayer.NickName);
+        killFeedPhotonView.RPC("AddKill", RpcTarget.AllBuffered, photonView.Owner.NickName, deadPlayer.NickName);
 
         // give health and materials
         playerHealth.ReplenishHealth(healthIncreasePerKill, 2);
@@ -840,7 +846,7 @@ public class Movement : MonoBehaviour
             }
         }
 
-        SetAmmo(true, 0, 0);
+        //SetAmmo(true, 0, 0);
         SetMaterialUI();
     }
 
@@ -1106,7 +1112,7 @@ public class Movement : MonoBehaviour
     [PunRPC]
     public void SpawnBullet(Vector3 location, Vector3 direction, float speedOfBullet, float damageOfBullet, float timeBeforeDestroy)
     {
-        photonView.Owner.AddScore(1);
+        //photonView.Owner.AddScore(1);
 
         GameObject bullet = Instantiate(bulletPrefab, location, Quaternion.identity);
         //Debug.Log("Bullet script: " + bullet.GetComponent<Bullet>());
@@ -1187,7 +1193,7 @@ public class Movement : MonoBehaviour
 
         if (hit)
         {
-            if (hit.collider.CompareTag("Wall"))
+            if (hit.collider.CompareTag("Wall") && hit.collider.GetComponent<PhotonView>().IsMine)
             {
 
                 isEditingWall = true;

@@ -24,6 +24,7 @@ namespace Photon.Pun
         public GameObject PlayerOverviewEntryPrefab;
 
         public static Dictionary<int, GameObject> playerListEntries;
+        [SerializeField] GameObject parent;
 
         #region UNITY
 
@@ -34,7 +35,7 @@ namespace Photon.Pun
             foreach (Player p in PhotonNetwork.PlayerList)
             {
                 GameObject entry = Instantiate(PlayerOverviewEntryPrefab);
-                entry.transform.SetParent(gameObject.transform);
+                entry.transform.SetParent(parent.transform);
                 entry.transform.localScale = Vector3.one;
                 //entry.GetComponent<Text>().color = QuickBuildsGame.GetColor(p.GetPlayerNumber());
                 //entry.GetComponent<Text>().text = string.Format("{0}\nElims: {1}", p.NickName, p.GetScore());
@@ -61,8 +62,6 @@ namespace Photon.Pun
             {
                 //entry.GetComponent<Text>().text = string.Format("{0}\nElims: {1}", targetPlayer.NickName, targetPlayer.GetScore());
                 entry.GetComponent<Text>().text = targetPlayer.NickName + " \n" + targetPlayer.GetScore();
-
-                Debug.Log(entry.GetComponent<Text>().text);
             }
 
         }

@@ -4,6 +4,8 @@ using System.Collections.Generic;
 using UnityEngine;
 using Photon.Pun;
 using TMPro;
+using An3Apps;
+
 public class Bullet : MonoBehaviour
 {
 
@@ -63,11 +65,6 @@ public class Bullet : MonoBehaviour
         Debug.DrawRay(transform.position, transform.up);
     }
 
-    public void OnDestroy()
-    {
-
-    }
-
     void HitSomething(GameObject collider, Vector2 collisionPoint)
     {
         if (collider.CompareTag("Target"))
@@ -76,10 +73,17 @@ public class Bullet : MonoBehaviour
             SpawnTargets.Instance.DestroyedTarget();
         }
 
-        // if the collider has a damageable script, and if bullet isn't hitting itself.
-        if (collider.transform.root.GetComponent<IDamageable<float, GameObject>>() != null && (!PhotonNetwork.OfflineMode ? bulletShooter.ViewID != collider.transform.root.GetComponent<PhotonView>().ViewID : bulletShooterTransform.root != collider.transform.root))
+        if (collider.transform.GetComponent<PhotonView>() != null)
         {
-
+            Debug.Log("Not null");
+        } else
+        {
+            Debug.Log("null");
+        }
+        // if the collider has a damageable script, and if bullet isn't hitting itself.
+        if ((collider.transform.root.GetComponent<IDamageable<float, GameObject>>() != null || collider.transform.GetComponent<IDamageable<float, GameObject>>() != null)
+            && (collider.GetComponent<PhotonView>() == null && collider.transform.root.GetComponent<PhotonView>() == null) || (!PhotonNetwork.OfflineMode ? bulletShooter.ViewID != collider.transform.root.GetComponent<PhotonView>().ViewID : bulletShooterTransform.root != collider.transform.root))
+        {
             //Debug.Log("Collider ViewID: " + collider.transform.root.GetComponent<PhotonView>().ViewID + " Bullet Shooter View ID: " + bulletShooter.ViewID);
             try
             {
@@ -91,6 +95,7 @@ public class Bullet : MonoBehaviour
                 collider.transform.root.GetComponent<IDamageable<float, GameObject>>().Damage(damage, bulletShooterTransform.gameObject);
             }
 
+            Debug.Log("Test");
             GameObject effect = Instantiate(effectPrefab, collisionPoint, Quaternion.identity);
             Destroy(effect, 3);
             Destroy(gameObject);

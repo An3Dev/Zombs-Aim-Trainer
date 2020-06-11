@@ -184,10 +184,6 @@ public class PlayerHealth : MonoBehaviour, IDamageable<float, GameObject>
             Destroy(damageTextGO, 1);
         }
 
-        
-
-        
-
         if (photonView.IsMine)
         {
             RefreshSliders();
@@ -197,7 +193,7 @@ public class PlayerHealth : MonoBehaviour, IDamageable<float, GameObject>
         {
             if (damager.GetComponent<PhotonView>().IsMine && !An3Apps.GameManager.testMode)
             {
-                damager.SendMessage("IncreaseKills", 1);
+                damager.transform.root.GetComponent<Movement>().IncreaseKills(1, photonView.Owner);
             }
             AddDeath(photonView.Owner, 1);
         }
@@ -205,7 +201,7 @@ public class PlayerHealth : MonoBehaviour, IDamageable<float, GameObject>
 
     public static void SetDeaths(Player player, int newDeaths)
     {
-        ExitGames.Client.Photon.Hashtable deaths = new ExitGames.Client.Photon.Hashtable();  // using PUN's implementation of Hashtable
+        ExitGames.Client.Photon.Hashtable deaths = new ExitGames.Client.Photon.Hashtable();
         deaths[PunPlayerScores.PlayerScoreProp] = newDeaths;
 
         player.SetCustomProperties(deaths);  // this locally sets the score and will sync it in-game asap.
@@ -224,7 +220,7 @@ public class PlayerHealth : MonoBehaviour, IDamageable<float, GameObject>
 
     public static void AddDeath(Player player, int scoreToAddToCurrent)
     {
-        int current = PlayerHealth.GetPlayerDeaths(player);
+        int current = GetPlayerDeaths(player);
         current = current + scoreToAddToCurrent;
 
         ExitGames.Client.Photon.Hashtable deaths = new ExitGames.Client.Photon.Hashtable();  // using PUN's implementation of Hashtable
