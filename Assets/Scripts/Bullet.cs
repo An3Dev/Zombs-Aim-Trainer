@@ -73,29 +73,35 @@ public class Bullet : MonoBehaviour
             SpawnTargets.Instance.DestroyedTarget();
         }
 
-        if (collider.transform.GetComponent<PhotonView>() != null)
-        {
-            Debug.Log("Not null");
-        } else
-        {
-            Debug.Log("null");
-        }
         // if the collider has a damageable script, and if bullet isn't hitting itself.
         if ((collider.transform.root.GetComponent<IDamageable<float, GameObject>>() != null || collider.transform.GetComponent<IDamageable<float, GameObject>>() != null)
-            && (collider.GetComponent<PhotonView>() == null && collider.transform.root.GetComponent<PhotonView>() == null) || (!PhotonNetwork.OfflineMode ? bulletShooter.ViewID != collider.transform.root.GetComponent<PhotonView>().ViewID : bulletShooterTransform.root != collider.transform.root))
+            && ((collider.GetComponent<PhotonView>() == null && collider.transform.root.GetComponent<PhotonView>() == null) || (!PhotonNetwork.OfflineMode ? bulletShooter.ViewID != collider.transform.root.GetComponent<PhotonView>().ViewID : bulletShooterTransform.root != collider.transform.root)))
         {
-            //Debug.Log("Collider ViewID: " + collider.transform.root.GetComponent<PhotonView>().ViewID + " Bullet Shooter View ID: " + bulletShooter.ViewID);
+
+            Debug.Log(collider.name);
+
             try
             {
-                collider.transform.root.GetComponent<IDamageable<float, GameObject>>().Damage(damage, bulletShooter.gameObject);
+                if (collider.transform.GetComponent<IDamageable<float, GameObject>>() != null) {
+                    collider.transform.GetComponent<IDamageable<float, GameObject>>().Damage(damage, bulletShooter.gameObject);
 
+                } else
+                {
+                    collider.transform.root.GetComponent<IDamageable<float, GameObject>>().Damage(damage, bulletShooter.gameObject);
+                }
             }
             catch
             {
-                collider.transform.root.GetComponent<IDamageable<float, GameObject>>().Damage(damage, bulletShooterTransform.gameObject);
+                if (bulletShooterTransform != null)
+                {
+                    collider.transform.root.GetComponent<IDamageable<float, GameObject>>().Damage(damage, bulletShooterTransform.gameObject);
+                } else
+                {
+                    Debug.Log("Don't know what to do");
+                }
+
             }
 
-            Debug.Log("Test");
             GameObject effect = Instantiate(effectPrefab, collisionPoint, Quaternion.identity);
             Destroy(effect, 3);
             Destroy(gameObject);

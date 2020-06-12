@@ -24,7 +24,7 @@ namespace An3Apps
 
         public static bool lastPersonStanding = false;
 
-        int killsToWin = 20;
+        public int killsToWin = 20;
         Movement movement;
         PlayerHealth playerhealth;
         PhotonView playerPhotonView;
@@ -59,7 +59,7 @@ namespace An3Apps
             {
                 PhotonNetwork.OfflineMode = true;
                 //Instantiate(Resources.Load("Player"), Vector3.left * 8, Quaternion.identity);
-                SpawnPlayer(Random.Range(0, 3));
+                SpawnPlayer(Random.Range(0, spawnPointsContainer.transform.childCount - 1));
             }
             else if (!PhotonNetwork.IsConnectedAndReady)
             {
@@ -71,7 +71,7 @@ namespace An3Apps
                 connected = true;
                 if (PhotonNetwork.IsMasterClient)
                 {
-                    thisPhotonView.RPC("SpawnPlayer", RpcTarget.AllBuffered, Random.Range(0, 3));
+                    thisPhotonView.RPC("SpawnPlayer", RpcTarget.AllBuffered, Random.Range(0, spawnPointsContainer.transform.childCount - 1));
                 }
                 playersAlive = PhotonNetwork.PlayerList.Length;
                 playerArray = PhotonNetwork.PlayerList;
@@ -144,7 +144,7 @@ namespace An3Apps
 
             if (playersAlive <= 1 && PhotonNetwork.IsMasterClient && !startedGame && lastPersonStanding)
             {
-                thisPhotonView.RPC("RestartGame", RpcTarget.AllBuffered, Random.Range(0, 3));
+                thisPhotonView.RPC("RestartGame", RpcTarget.AllBuffered, Random.Range(0, spawnPointsContainer.transform.childCount - 1));
                 startedGame = true;
                 Debug.Log(playerPhotonView.transform);
             }
@@ -158,10 +158,10 @@ namespace An3Apps
                 //entry.GetComponent<Text>().text = string.Format("{0}\nElims: {1}\nDeaths: {2}", targetPlayer.NickName, targetPlayer.GetScore(), targetPlayer.CustomProperties[QuickBuildsGame.PLAYER_DEATHS]);
                 if (targetPlayer.GetScore() >= killsToWin)
                 {
-                    Debug.Log("Target player: " + targetPlayer);
+
                     if (PhotonNetwork.IsMasterClient)
                     {
-                        thisPhotonView.RPC("RestartGame", RpcTarget.AllBuffered, Random.Range(0, 3));
+                        thisPhotonView.RPC("RestartGame", RpcTarget.AllBuffered, Random.Range(0, spawnPointsContainer.transform.childCount - 1));
 
                         // resets score for all players
                         foreach (Player player in PhotonNetwork.PlayerList)
@@ -254,6 +254,8 @@ namespace An3Apps
             {
                 GameObject.Find(name).SetActive(false);
             }
+
+            Debug.Log("Set " + name + " to be inactive");
         }
 
         public void OnLeaveMatchPressed(Text text)

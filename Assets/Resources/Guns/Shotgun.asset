@@ -26,6 +26,7 @@ MonoBehaviour:
   magazineSize: 5
   bloomAmount: 0
   bulletSpeed: 25
+  fov: 7
   bulletsShotAtOnce: 5
   timeBeforeDestroy: 0.45
   startingAmmo: 15

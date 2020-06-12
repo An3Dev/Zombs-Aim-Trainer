@@ -823,6 +823,11 @@ public class Movement : MonoBehaviour
     public void IncreaseKills(int amount, Player deadPlayer)
     {
         kills += amount;
+
+        if (kills >= gameManagerPhotonView.transform.GetComponent<GameManager>().killsToWin)
+        {
+            photonView.RPC("StartSpawn", RpcTarget.AllBuffered, 3f);
+        }
         killsText.text = kills.ToString();
 
         // Add score
@@ -953,14 +958,17 @@ public class Movement : MonoBehaviour
         bulletSpeed = item.bulletSpeed;
         bulletDamage = item.damage;
         bulletSprite = item.bulletSprite;
-        reloadTime = item.reloadTime;
-        amountOfBulletsShot = item.bulletsShotAtOnce;
+
+
 
         // if not in offline mode, check if photon view is mine. If in offline mode, if statement is true.
         if (!PhotonNetwork.OfflineMode ? photonView.IsMine : 1==1)
         {
             totalBulletsAvailable = totalAmmoList[inventory.GetItemIndex(item)];
             currentBulletsInMag = currentBulletsInMagList[inventory.GetItemIndex(item)];
+            mainCamera.orthographicSize = item.fov;
+            reloadTime = item.reloadTime;
+            amountOfBulletsShot = item.bulletsShotAtOnce;
         }
 
         UpdateAmmoList();

@@ -18,6 +18,7 @@ public class Item : ScriptableObject
     public int magazineSize;
     public int bloomAmount;
     public float bulletSpeed;
+    public float fov;
 
     public int bulletsShotAtOnce;
     public float timeBeforeDestroy;

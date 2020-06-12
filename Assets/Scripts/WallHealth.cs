@@ -18,7 +18,7 @@ public class WallHealth : MonoBehaviour, IDamageable<float, GameObject>
 
     PhotonView photonView;
 
-    bool noPhotonView = false;
+    bool hasPhotonView = true;
     float minimumTransparency = 0.1f;
 
     PhotonView gameManagerPhotonView;
@@ -34,7 +34,8 @@ public class WallHealth : MonoBehaviour, IDamageable<float, GameObject>
         } else
         {
             photonView = null;
-            noPhotonView = true;
+            hasPhotonView = false;
+            Debug.Log("No photon view");
         }
 
         gameManagerPhotonView = GameObject.Find("GameManager").GetComponent<PhotonView>();
@@ -85,20 +86,24 @@ public class WallHealth : MonoBehaviour, IDamageable<float, GameObject>
     {
         if(currentHealth <= 0)
         {
-            Debug.Log(transform.name + " was destroyed");
             //Destroy(gameObject);
 
             //photonView.gameObject.SetActive(false);
-            if (!PhotonNetwork.OfflineMode && !noPhotonView)
+
+            Debug.Log("Has photon view? " + hasPhotonView);
+
+            if (!PhotonNetwork.OfflineMode && hasPhotonView)
             {
-                
+                Debug.Log("DestroySelf");
+
                 photonView.RPC("DestroySelf", RpcTarget.AllBuffered);
                 
-            } else if (!PhotonNetwork.OfflineMode)
+            } else if (!PhotonNetwork.OfflineMode && !hasPhotonView)
             {
-                gameManagerPhotonView.RPC("DisableObject", RpcTarget.AllBuffered, transform.name, transform.parent);
-                Destroy(transform.root.gameObject);
                 Debug.Log("Destroy");
+                Destroy(gameObject);
+                gameManagerPhotonView.RPC("DisableGameObject", RpcTarget.AllBuffered, transform.name, transform.parent);
+                //Destroy(transform.root.gameObject);
             }
         }
     }
