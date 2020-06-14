@@ -122,24 +122,24 @@ namespace An3Apps
         {
 
             
-            if (Input.GetKey(KeyCode.Escape) && PhotonNetwork.IsMasterClient)
-            {
-                // show restart game options, 
+            //if (Input.GetKey(KeyCode.Escape) && PhotonNetwork.IsMasterClient)
+            //{
+            //    // show restart game options, 
                 
-            }
-            if (Input.GetKey(KeyCode.Escape))
-            {
+            //}
+            //if (Input.GetKey(KeyCode.Escape))
+            //{
 
-                if (PhotonNetwork.IsConnectedAndReady)
-                {
-                    Cursor.SetCursor(null, Vector2.zero, CursorMode.Auto);
-                    StopAllCoroutines();
-                    UnityEngine.SceneManagement.SceneManager.LoadScene("Lobby");
+            //    if (PhotonNetwork.IsConnectedAndReady)
+            //    {
+            //        Cursor.SetCursor(null, Vector2.zero, CursorMode.Auto);
+            //        StopAllCoroutines();
+            //        UnityEngine.SceneManagement.SceneManager.LoadScene("Lobby");
 
-                    PhotonNetwork.LeaveRoom();
-                    PhotonNetwork.Disconnect();
-                }
-            }
+            //        PhotonNetwork.LeaveRoom();
+            //        PhotonNetwork.Disconnect();
+            //    }
+            //}
             pingText.text = PhotonNetwork.GetPing() + "ms";
 
             if (playersAlive <= 1 && PhotonNetwork.IsMasterClient && !startedGame && lastPersonStanding)
