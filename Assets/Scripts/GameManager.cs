@@ -14,7 +14,7 @@ namespace An3Apps
     {
         public static GameManager Instance;
 
-        public static bool testMode = true;
+        public static bool testMode = false;
 
         [SerializeField] GameObject map;
 
@@ -46,11 +46,15 @@ namespace An3Apps
         [SerializeField] GameObject leaderBoardSlotPrefab;
         [SerializeField] TextMeshProUGUI winnerText;
         [SerializeField] GameObject slotParent;
+
+        public GameObject settingsGameObject;
+        Keybinds keybinds;
         // Start is called before the first frame update
         void Awake()
         {
             Instance = this;
             thisPhotonView = GetComponent<PhotonView>();
+            keybinds = FindObjectOfType<Keybinds>();
         }
 
         private void Start()
@@ -120,13 +124,29 @@ namespace An3Apps
         // Update is called once per frame
         void Update()
         {
+            if (Input.GetKeyDown(KeyCode.Escape) && PhotonNetwork.IsMasterClient)
+            {
+                // show settings
+                if (!settingsGameObject.activeInHierarchy) 
+                {
+                    settingsGameObject.SetActive(true);
+                } else if (settingsGameObject.activeInHierarchy)
+                {
+                    if(!keybinds)
+                    {
+                        keybinds = FindObjectOfType<Keybinds>();
+                    }
+                    // if not changing a key
+                    if (!keybinds.currentKey)
+                    {
+                        settingsGameObject.SetActive(false);
+                    } else
+                    {
+                        // do nothing because user canceled keybind assignment
+                    }
+                }
 
-            
-            //if (Input.GetKey(KeyCode.Escape) && PhotonNetwork.IsMasterClient)
-            //{
-            //    // show restart game options, 
-                
-            //}
+            }
             //if (Input.GetKey(KeyCode.Escape))
             //{
 

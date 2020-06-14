@@ -32,6 +32,7 @@ public class Movement : MonoBehaviour
 
     public Rigidbody2D rb;
 
+    public Keybinds keybindsScript;
 
     PlayerState previousState;
 
@@ -83,7 +84,7 @@ public class Movement : MonoBehaviour
         brickText = group.transform.GetChild(1).GetComponent<TextMeshProUGUI>();
         metalText = group.transform.GetChild(2).GetComponent<TextMeshProUGUI>();
 
-
+        keybindsScript = FindObjectOfType<Keybinds>();
 
         materialCountList = new List<float>();
         if (!PhotonNetwork.OfflineMode && !photonView.IsMine)
@@ -130,6 +131,7 @@ public class Movement : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
+        AssignKeybinds();
         wallPreview = GameObject.Find("WallPreview");
         wallPreview.SetActive(false);
 
@@ -426,8 +428,17 @@ public class Movement : MonoBehaviour
         else if (Input.GetKeyDown(reloadKeybind))
         {
             Reload();
-        }
-        
+        }    
+    }
+
+    public void AssignKeybinds()
+    {
+        reloadKeybind = keybindsScript.GetKeybind("Reload");
+        firstSlotKeybind = keybindsScript.GetKeybind("SlotOne");
+        secondSlotKeybind = keybindsScript.GetKeybind("SlotTwo");
+        thirdSlotKeybind = keybindsScript.GetKeybind("SlotThree");
+        fourthSlotKeybind = keybindsScript.GetKeybind("SlotFour");
+        fifthSlotKeybind = keybindsScript.GetKeybind("SlotFive");
     }
 
     ///Returns 'true' if we touched or hovering on Unity UI element.

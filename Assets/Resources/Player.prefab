@@ -620,6 +620,7 @@ MonoBehaviour:
   playerState: 0
   isTraining: 0
   rb: {fileID: 7862168791663815579}
+  keybindsScript: {fileID: 0}
   photonView: {fileID: 0}
   buildingSprite: {fileID: 21300000, guid: d176e6ad4acee144ca800b95ca711596, type: 3}
   editingSprite: {fileID: 21300000, guid: 3d73081433a0adf49af3f24e941a28ce, type: 3}
