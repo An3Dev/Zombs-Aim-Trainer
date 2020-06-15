@@ -65,9 +65,10 @@ public class Inventory : MonoBehaviour
     {
         for(int i = 0; i < inventoryLayoutGroup.childCount; i++)
         {
-            Transform itemNameText = inventoryLayoutGroup.GetChild(i).Find("ItemNameText");
-            Transform image = inventoryLayoutGroup.GetChild(i).Find("ItemImage");
-            Transform ammoText = inventoryLayoutGroup.GetChild(i).Find("AmmoText");
+            Transform slot = inventoryLayoutGroup.GetChild(i);
+            Transform itemNameText = slot.Find("ItemNameText");
+            Transform image = slot.Find("ItemImage");
+            Transform ammoText = slot.Find("AmmoText");
 
             // if there is an extra slot, make everything blank
             if (i == itemsInInventory.Count)

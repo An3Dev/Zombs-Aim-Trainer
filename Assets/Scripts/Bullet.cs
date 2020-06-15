@@ -78,8 +78,6 @@ public class Bullet : MonoBehaviour
             && ((collider.GetComponent<PhotonView>() == null && collider.transform.root.GetComponent<PhotonView>() == null) || (!PhotonNetwork.OfflineMode ? bulletShooter.ViewID != collider.transform.root.GetComponent<PhotonView>().ViewID : bulletShooterTransform.root != collider.transform.root)))
         {
 
-            Debug.Log(collider.name);
-
             try
             {
                 if (collider.transform.GetComponent<IDamageable<float, GameObject>>() != null) {

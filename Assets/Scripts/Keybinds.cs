@@ -123,7 +123,6 @@ public class Keybinds : MonoBehaviour
         thisMovementScript.AssignKeybinds();
     }
 
-
     public void LoadKeys()
     {
         keybindsDictionary.Add("MoveForward", (KeyCode)System.Enum.Parse(typeof(KeyCode), PlayerPrefs.GetString("MoveForward", "W")));

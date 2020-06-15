@@ -10,6 +10,7 @@ using UnityEngine.UI;
 using Photon.Pun.UtilityScripts;
 using UnityEngine.EventSystems;
 using An3Apps;
+using UnityEngine.EventSystems;
 
 public class Movement : MonoBehaviour
 {
@@ -65,6 +66,8 @@ public class Movement : MonoBehaviour
     int currentMaterial = 0;
 
     PlayerHealth playerHealth;
+
+    Transform movedItemSlot;
 
     [SerializeField] GameObject woodWallPrefab, brickWallPrefab, metalWallPrefab;
 
@@ -161,7 +164,7 @@ public class Movement : MonoBehaviour
         }
         return null;
     }
-    
+
     // Update is called once per frame
     void Update()
     {
@@ -181,10 +184,16 @@ public class Movement : MonoBehaviour
 
         if (Input.GetMouseButton(0))
         {
-            //foreach(RaycastResult result in GetEventSystemRaycastResults())
-            //{
-                
-            //}
+            Vector3 mousePos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
+            Vector2 mousePos2D = new Vector2(mousePos.x, mousePos.y);
+            RaycastHit2D tempHit = Physics2D.Raycast(mousePos2D, mainCamera.transform.forward);
+            Debug.Log(tempHit.collider);
+            // if hit UI
+            if (tempHit && tempHit.collider.gameObject.layer == LayerMask.NameToLayer("UI"))
+            {
+                movedItemSlot = tempHit.collider.transform;
+                movedItemSlot.position = Input.mousePosition;
+            }
 
             if (playerState == PlayerState.Weapon) 
             {
@@ -270,6 +279,10 @@ public class Movement : MonoBehaviour
 
         if (Input.GetMouseButtonUp(1))
         {
+            if (movedItemSlot != null)
+            {
+                Debug.Log("Released slot");
+            }
             if (isEditingWall)
             {
                 if (resetOnRelease)
@@ -431,6 +444,7 @@ public class Movement : MonoBehaviour
         }    
     }
 
+
     public void AssignKeybinds()
     {
         reloadKeybind = keybindsScript.GetKeybind("Reload");
@@ -439,33 +453,6 @@ public class Movement : MonoBehaviour
         thirdSlotKeybind = keybindsScript.GetKeybind("SlotThree");
         fourthSlotKeybind = keybindsScript.GetKeybind("SlotFour");
         fifthSlotKeybind = keybindsScript.GetKeybind("SlotFive");
-    }
-
-    ///Returns 'true' if we touched or hovering on Unity UI element.
-    public static bool IsPointerOverUIElement()
-    {
-        return IsPointerOverUIElement(GetEventSystemRaycastResults());
-    }
-
-    ///Returns 'true' if we touched or hovering on Unity UI element.
-    public static bool IsPointerOverUIElement(List<RaycastResult> eventSystemRaysastResults)
-    {
-        for (int index = 0; index < eventSystemRaysastResults.Count; index++)
-        {
-            RaycastResult curRaysastResult = eventSystemRaysastResults[index];
-            if (curRaysastResult.gameObject.layer == LayerMask.NameToLayer("UI"))
-                return true;
-        }
-        return false;
-    }
-    ///Gets all event systen raycast results of current mouse or touch position.
-    static List<RaycastResult> GetEventSystemRaycastResults()
-    {
-        PointerEventData eventData = new PointerEventData(EventSystem.current);
-        eventData.position = Input.mousePosition;
-        List<RaycastResult> raycastResults = new List<RaycastResult>();
-        EventSystem.current.RaycastAll(eventData, raycastResults);
-        return raycastResults;
     }
 
     void SwitchStates(PlayerState stateToChangeTo)
