@@ -177,6 +177,8 @@ MonoBehaviour:
   Sniper: {fileID: 11400000, guid: f7557ec8407007b4596d8c194bcbd600, type: 2}
   Scar: {fileID: 11400000, guid: 3564a6deb621f7e46afa23e971ee3e56, type: 2}
   Shotgun: {fileID: 11400000, guid: 02d1c1850f0a5044882e42bc18375774, type: 2}
+  Slurpfish: {fileID: 11400000, guid: 773ad4d652baa284e9eda5020984e7bb, type: 2}
+  Minigun: {fileID: 11400000, guid: c27c8cf7c0549bf4493b0f694553465f, type: 2}
 --- !u!1 &3961706720011935802
 GameObject:
   m_ObjectHideFlags: 0

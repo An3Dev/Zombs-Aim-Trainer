@@ -1,0 +1,36 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f506c961929444247a3f60f766241963, type: 3}
+  m_Name: Slurpfish
+  m_EditorClassIdentifier: 
+  itemName: Slurpfish
+  description: Slurp to get 50 health
+  topViewSprite: {fileID: 5162883129201494777, guid: ab7fcfe3dde4e0346831853ef8f4026b,
+    type: 3}
+  sideViewSprite: {fileID: 0}
+  muzzleFlashSprite: {fileID: 0}
+  bulletSprite: {fileID: 8030500598090849251, guid: 037e7cbca5e351343818ca3bfca97f80,
+    type: 3}
+  timeBetweenShots: 0
+  damage: 0
+  reloadTime: 1
+  magazineSize: 1
+  bloomAmount: 0
+  bulletSpeed: 0
+  fov: 7
+  bulletsShotAtOnce: 1
+  timeBeforeDestroy: 1.3
+  startingAmmo: 3
+  throwable: 0
+  isHealingItem: 1
+  healingTime: 1
+  healingAmount: 50

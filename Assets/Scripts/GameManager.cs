@@ -14,7 +14,7 @@ namespace An3Apps
     {
         public static GameManager Instance;
 
-        public static bool testMode = true;
+        public static bool testMode = false;
 
         [SerializeField] GameObject map;
 
@@ -55,6 +55,11 @@ namespace An3Apps
             Instance = this;
             thisPhotonView = GetComponent<PhotonView>();
             keybinds = FindObjectOfType<Keybinds>();
+        }
+
+        public void ImageClick(GameObject gameObject)
+        {
+            playerPhotonView.transform.GetComponent<Movement>().InventoryClick(gameObject);
         }
 
         private void Start()
@@ -124,7 +129,7 @@ namespace An3Apps
         // Update is called once per frame
         void Update()
         {
-            if (Input.GetKeyDown(KeyCode.Escape) && PhotonNetwork.IsMasterClient)
+            if (Input.GetKeyDown(KeyCode.Escape))
             {
                 // show settings
                 if (!settingsGameObject.activeInHierarchy) 

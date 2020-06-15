@@ -10,7 +10,6 @@ using UnityEngine.UI;
 using Photon.Pun.UtilityScripts;
 using UnityEngine.EventSystems;
 using An3Apps;
-using UnityEngine.EventSystems;
 
 public class Movement : MonoBehaviour
 {
@@ -47,6 +46,13 @@ public class Movement : MonoBehaviour
 
     PlayerState lastState;
 
+    Vector2 movedSlotStartPos;
+
+    //Code to be place in a MonoBehaviour with a GraphicRaycaster component
+    GraphicRaycaster graphicsRaycaster;
+    //Create the PointerEventData with null for the EventSystem
+    PointerEventData pointerEventData = new PointerEventData(null);
+
     [Space]
 
     public KeyCode handsKeybinds = KeyCode.Tab, firstSlotKeybind = KeyCode.Alpha1, secondSlotKeybind = KeyCode.Alpha2, thirdSlotKeybind = KeyCode.Alpha3,
@@ -72,6 +78,7 @@ public class Movement : MonoBehaviour
     [SerializeField] GameObject woodWallPrefab, brickWallPrefab, metalWallPrefab;
 
     [SerializeField] TextMeshProUGUI woodText, brickText, metalText;
+
     // Start is called before the first frame update
     void Awake()
     {
@@ -80,6 +87,8 @@ public class Movement : MonoBehaviour
         //editingScript = GetComponent<Editing>();
         Instance = this;
         photonView = GetComponent<PhotonView>();
+
+        graphicsRaycaster = FindObjectOfType<GraphicRaycaster>();
 
         GameObject group = GameObject.Find("MaterialsGroup");
 
@@ -165,6 +174,11 @@ public class Movement : MonoBehaviour
         return null;
     }
 
+    public void InventoryClick(GameObject inventorySlot)
+    {
+        movedItemSlot = inventorySlot.transform;
+    }
+
     // Update is called once per frame
     void Update()
     {
@@ -182,17 +196,24 @@ public class Movement : MonoBehaviour
         //transform.position = new Vector3(Mathf.Clamp(transform.position.x, -10, 10), Mathf.Clamp(transform.position.y, -5, 5));
         Rotate();
 
+        if (movedItemSlot) // if moved item slot is not null, then it means we're moving it;
+        {
+            movedItemSlot.position = Input.mousePosition;
+
+            // if already disabled this, don't do it again
+            if (movedItemSlot.parent.GetComponent<HorizontalLayoutGroup>().enabled)
+            {
+                movedItemSlot.parent.GetComponent<HorizontalLayoutGroup>().enabled = false;
+                movedSlotStartPos = Input.mousePosition;
+            }
+
+        }
+
         if (Input.GetMouseButton(0))
         {
-            Vector3 mousePos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
-            Vector2 mousePos2D = new Vector2(mousePos.x, mousePos.y);
-            RaycastHit2D tempHit = Physics2D.Raycast(mousePos2D, mainCamera.transform.forward);
-            Debug.Log(tempHit.collider);
-            // if hit UI
-            if (tempHit && tempHit.collider.gameObject.layer == LayerMask.NameToLayer("UI"))
+            if (movedItemSlot)
             {
-                movedItemSlot = tempHit.collider.transform;
-                movedItemSlot.position = Input.mousePosition;
+                return;
             }
 
             if (playerState == PlayerState.Weapon) 
@@ -279,10 +300,7 @@ public class Movement : MonoBehaviour
 
         if (Input.GetMouseButtonUp(1))
         {
-            if (movedItemSlot != null)
-            {
-                Debug.Log("Released slot");
-            }
+            
             if (isEditingWall)
             {
                 if (resetOnRelease)
@@ -294,6 +312,90 @@ public class Movement : MonoBehaviour
 
         if (Input.GetMouseButtonUp(0))
         {
+            if (movedItemSlot != null)
+            {
+                Transform inventoryContainer = movedItemSlot.parent;
+                inventoryContainer.GetComponent<HorizontalLayoutGroup>().enabled = true;
+
+                for (int i = 0; i < inventoryContainer.childCount; i++)
+                {
+                    if (i < inventoryContainer.childCount - 1)
+                    {
+                        // if the slot is in between two slots and it was moved right
+                        if (movedItemSlot.position.x > inventoryContainer.GetChild(i).position.x && movedItemSlot.position.x < inventoryContainer.GetChild(i + 1).position.x && movedItemSlot.position.x > movedSlotStartPos.x)
+                        {
+                            SetAmmo(false, movedItemSlot.GetSiblingIndex(), i);
+                            inventory.SwapWeapons(movedItemSlot.GetSiblingIndex(), i);
+
+                            inventoryContainer.GetChild(i).SetSiblingIndex(movedItemSlot.GetSiblingIndex());
+
+                            movedItemSlot.SetSiblingIndex(i);
+
+
+                            //SetStats(currentItem);
+                            SwitchToWeapon(currentItem.name);
+                            //inventory.SelectItem(i);
+
+                            UpdateAmmoList();
+                            break;
+                        }
+                        // if the slot is in between two slots and it was moved Left
+                        else if (movedItemSlot.position.x > inventoryContainer.GetChild(i).position.x && movedItemSlot.position.x < inventoryContainer.GetChild(i + 1).position.x && movedItemSlot.position.x < movedSlotStartPos.x)
+                        {
+                            SetAmmo(false, movedItemSlot.GetSiblingIndex(), i + 1);
+                            inventory.SwapWeapons(movedItemSlot.GetSiblingIndex(), i + 1);
+
+                            inventoryContainer.GetChild(i + 1).SetSiblingIndex(movedItemSlot.GetSiblingIndex());
+
+                            movedItemSlot.SetSiblingIndex(i + 1);
+
+
+                            //SetStats(currentItem);
+                            SwitchToWeapon(currentItem.name);
+                            //inventory.SelectItem(i);
+
+                            UpdateAmmoList();
+                            break;
+                        }             
+                        else if (movedItemSlot.position.x < inventoryContainer.GetChild(0).position.x)
+                        {
+                            SetAmmo(false, movedItemSlot.GetSiblingIndex(), 0);
+                            inventory.SwapWeapons(movedItemSlot.GetSiblingIndex(), 0);
+
+                            inventoryContainer.GetChild(i).SetSiblingIndex(movedItemSlot.GetSiblingIndex());
+
+                            movedItemSlot.SetSiblingIndex(0);
+
+                            //SetStats(currentItem);
+                            SwitchToWeapon(currentItem.name);
+                            //inventory.SelectItem(0);
+
+                            UpdateAmmoList();
+
+                            break;
+                        } else if (movedItemSlot.position.x > inventoryContainer.GetChild(inventoryContainer.childCount - 1).position.x)
+                        {
+                            SetAmmo(false, movedItemSlot.GetSiblingIndex(), inventoryContainer.childCount - 1);
+                            inventory.SwapWeapons(movedItemSlot.GetSiblingIndex(), inventoryContainer.childCount - 1);
+
+
+                            inventoryContainer.GetChild(i).SetSiblingIndex(movedItemSlot.GetSiblingIndex());
+
+                            movedItemSlot.SetSiblingIndex(inventoryContainer.childCount - 1);
+                            //SetStats(currentItem);
+                            SwitchToWeapon(currentItem.name);
+                            //inventory.SelectItem(inventoryContainer.childCount - 1);
+
+                            UpdateAmmoList();
+
+                            break;
+                        }
+                    }               
+                }
+
+                movedItemSlot = null;
+            }
+
             if (isEditingWall)
             {
                 lastEdited = "";
@@ -856,10 +958,11 @@ public class Movement : MonoBehaviour
     // Sets the ammo count of all the weapons. Also swaps ammo when weapons are moved in the inventory
     public void SetAmmo(bool setToMax, int from, int to)
     {
-        if (!photonView.IsMine)
+        if (!photonView.IsMine && !PhotonNetwork.OfflineMode)
         {
             return;
         }
+
         // if want to set the ammo to its default staring ammo.
         if (setToMax)
         {
@@ -899,20 +1002,36 @@ public class Movement : MonoBehaviour
             // total ammo data
             int toAmount = totalAmmoList[to];
             int fromAmount = totalAmmoList[from];
-            totalAmmoList.RemoveAt(to);
-            totalAmmoList.RemoveAt(from);
+            Debug.Log("To: " + to);
+            Debug.Log("From: " + from);
+            Debug.Log("To amount: " + toAmount);
+            Debug.Log("From amount: " + fromAmount);
 
-            totalAmmoList.Insert(from, toAmount);
-            totalAmmoList.Insert(to, fromAmount);
+            //if (from != 0)
+            //    totalAmmoList.RemoveAt(from - 1);
+            //else
+            //    totalAmmoList.RemoveAt(0);
 
-            // current bullets data
-            toAmount = currentBulletsInMagList[to];
-            fromAmount = currentBulletsInMagList[from];
-            currentBulletsInMagList.RemoveAt(to);
-            currentBulletsInMagList.RemoveAt(from);
+            //totalAmmoList.Insert(from - (from != 0 ? -1 : (from < totalAmmoList.Count ? 0 : totalAmmoList.Count - 1)), toAmount);
+            //totalAmmoList.Insert(to - (to != 0 ? -1 : (to < totalAmmoList.Count ? 0 : totalAmmoList.Count - 1)), fromAmount);
 
-            currentBulletsInMagList.Insert(from, toAmount);
-            currentBulletsInMagList.Insert(to, fromAmount);
+            int tmp = totalAmmoList[to];
+            totalAmmoList[to] = totalAmmoList[from];
+            totalAmmoList[from] = tmp;
+
+            //if (from != 0)
+            //    currentBulletsInMagList.RemoveAt(from - 1);
+            //else
+            //    currentBulletsInMagList.RemoveAt(0);
+
+            //currentBulletsInMagList.Insert(from - (from != 0 ? -1 : (from < totalAmmoList.Count ? 0 : totalAmmoList.Count - 1)), toAmount);
+            //currentBulletsInMagList.Insert(to - (to != 0 ? -1 : (to < totalAmmoList.Count ? 0 : totalAmmoList.Count - 1)), fromAmount);
+
+            tmp = totalAmmoList[to];
+            currentBulletsInMagList[to] = currentBulletsInMagList[from];
+            currentBulletsInMagList[from] = tmp;
+            SwitchToWeapon(currentItem.name);
+            UpdateAmmoList();
         }
 
         //UpdateAmmoList();
@@ -932,7 +1051,6 @@ public class Movement : MonoBehaviour
 
         // Show item.
         gunRenderer.sprite = thisItem.topViewSprite;
-
 
         if (!PhotonNetwork.OfflineMode && !photonView.IsMine)
         {
@@ -1079,6 +1197,7 @@ public class Movement : MonoBehaviour
                 Reload();
             }
             UpdateAmmoList();
+            Debug.Log(currentItem);
             inventory.UpdateAmmo(inventory.GetItemIndex(currentItem), totalBulletsAvailable);
         }
     }

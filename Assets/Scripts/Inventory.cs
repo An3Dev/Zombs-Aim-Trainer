@@ -13,7 +13,7 @@ public class Inventory : MonoBehaviour
 
     public Item selectedItem;
 
-    public Item P90, Sniper, Scar, Shotgun;
+    public Item P90, Sniper, Scar, Shotgun, Slurpfish, Minigun;
 
     Transform inventoryLayoutGroup;
     Movement movementScript;
@@ -33,8 +33,8 @@ public class Inventory : MonoBehaviour
         AddItem(P90);
         AddItem(Scar);
         AddItem(Shotgun);
-        AddItem(Sniper);       
-
+        AddItem(Sniper);
+        AddItem(Minigun);
         SelectItem(0);
         movementScript.SetAmmo(true, 0, 0);
 
@@ -42,6 +42,13 @@ public class Inventory : MonoBehaviour
     }
     private void Start()
     {
+    }
+
+    public void SwapWeapons(int from, int to)
+    {
+        Item tmp = itemsInInventory[to];
+        itemsInInventory[to] = itemsInInventory[from];
+        itemsInInventory[from] = tmp;
     }
 
     public int GetItemIndex(Item item)

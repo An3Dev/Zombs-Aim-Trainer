@@ -120,6 +120,10 @@ public class Keybinds : MonoBehaviour
             PlayerPrefs.SetString(key.Key, key.Value.ToString());
         }
         PlayerPrefs.Save();
+        if (!thisMovementScript)
+        {
+            thisMovementScript = FindObjectOfType<Movement>();
+        }
         thisMovementScript.AssignKeybinds();
     }
 
